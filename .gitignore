@@ -1,0 +1,15 @@
+# package directories
+/node_modules
+jspm_packages
+
+# dependencies
+/node_modules
+
+# production
+/build
+
+.env
+
+/.wrangler
+
+wrangler.toml
