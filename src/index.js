@@ -1,10 +1,15 @@
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+
 const accountRouter = require("./routes/account.route");
 const employeesRouter = require("./routes/employee.route");
 const consumablesRouter = require("./routes/consumables.route");
 const loginRouter = require('./routes/login.route');
 
 const app = new Hono()
+
+
+app.use('/server/*', cors())
 
 app.get('/', async (c) => {
 	return c.json({ message: 'Hello' })
