@@ -8,7 +8,6 @@ const loginRouter = require('./routes/login.route');
 
 const app = new Hono()
 
-
 app.use('/server/*', cors())
 
 app.get('/', async (c) => {
