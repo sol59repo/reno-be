@@ -1,17 +1,18 @@
-name: Deploy Worker
+name: Deploy
+
 on:
   push:
     branches:
       - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    needs: test
+    name: Deploy
     steps:
-      - uses: actions/checkout@v2
-      - name: Build & Deploy Worker
+      - uses: actions/checkout@v3
+      - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: G2QGtU9FVJ9508d6qO9G0DEFJO55KG_w2XQBXiFn
-          accountId: d6643a2b0c0f621a93e209bbd5391e8e
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
