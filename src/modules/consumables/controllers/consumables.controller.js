@@ -3,6 +3,7 @@ const HttpException = require('../../../utils/HttpException.utils');
 const { formatData } = require("../../../utils/settings");
 const { formatDate } = require("../../../utils/helper")
 const shortid = require('shortid');
+const { consumableSchema, consumableUpdateSchema} = require("../validators/consumables.validator");
 
 class Consumables {
     tblconsumables = 'consumables';
@@ -17,6 +18,10 @@ class Consumables {
             addedBy,
             itemCode
         } = body
+
+        const val = consumableSchema.safeParse(body);
+
+        if (!val.success) return c.json(new HttpException(400, [val.error.issues[0].message] ?? 'Validation error'), 400);
 
         // this.checkValidation(req);
 
@@ -76,6 +81,10 @@ class Consumables {
         const tblconsumables = this.tblconsumables;
         const body = await c.req.json();
         const { count, itemName, qty } = body;
+
+        const val = consumableUpdateSchema.safeParse(body);
+
+        if (!val.success) return c.json(new HttpException(400, [val.error.issues[0].message] ?? 'Validation error'), 400);
 
         const set = {
             qty: qty,

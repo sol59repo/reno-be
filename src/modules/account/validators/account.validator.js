@@ -2,10 +2,21 @@ import { z } from "zod";
 
 
 exports.createAccountSchema = z.object({
-    first_name: z.string(),
-    last_name: z.string(),
-    email: z.string().email(),
-    password: z.string(),
+    ID: z.string({
+        required_error: "ID is required",
+    }),
+    password: z.string({
+        required_error: "password is required",
+    }),
+    first_name: z.string({
+        required_error: "first_name is required",
+    }),
+    last_name: z.string({
+        required_error: "last_name is required",
+    }),
+    email: z.string({
+        required_error: "email is required",
+    }).email(),
     // confirm_password: z.string(),
 });
 
@@ -16,8 +27,12 @@ exports.deleteAccountSchema = z.object({
 })
 
 exports.updateAccountSchema = z.object({
-    first_name: z.string(),
-    last_name: z.string(),
+    first_name: z.string({
+        required_error: "first_name is required",
+    }),
+    last_name: z.string({
+        required_error: "last_name is required",
+    }),
     // email: z.string().email(),
     // password: z.string(),
     // confirm_password: z.string(),

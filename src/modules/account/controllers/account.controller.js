@@ -18,7 +18,7 @@ class Account {
         // const { confirm_password, ...restOfUpdates } = data;
         console.log(data);
         let usersData = {
-            ID: Math.floor(Math.random() * 90000) + 10000,
+            ID: data.ID,
             password: data.password,
             usertype: 'Admin',
             status: 'Active'
@@ -26,11 +26,11 @@ class Account {
 
         const val = createAccountSchema.safeParse(data);
 
-        if (!val.success) return c.text("Validation faild", 400);
+        if (!val.success) return c.json(new HttpException(400, [val.error.issues[0].message] ?? 'Validation error'), 400);
 
-        const insertUser = await MyModel.insert(`${this.tableName}`, usersData);
+        const { sql, values } = await MyModel.insert(`${this.tableName}`, usersData);
 
-        const resulInsertedUser = await c.env.DB.prepare(insertUser).bind(usersData.ID, data.password, usersData.usertype, usersData.status).run();
+        const resulInsertedUser = await c.env.DB.prepare(sql).bind(...values).run();
 
         if (Math.trunc(resulInsertedUser.meta.last_row_id) == 0) {
             console.log('Something went wrong');
@@ -47,8 +47,8 @@ class Account {
                 dateAdded: Date.now(),
             }
 
-            const insertUserDetails = await MyModel.insert(`${this.tbluserdetails}`, usersDetailsData);
-            const resulInsertedUserDetails = await c.env.DB.prepare(insertUserDetails).bind(usersDetailsData.fkUsercount, data.first_name, data.last_name, data.email, usersDetailsData.Address, usersDetailsData.gender, usersDetailsData.gender, Date.now()).run();
+            const  { sql, values } = await MyModel.insert(`${this.tbluserdetails}`, usersDetailsData);
+            const resulInsertedUserDetails = await c.env.DB.prepare(sql).bind(...values).run();
 
             if (resulInsertedUserDetails.meta.last_row_id == 0) {
                 console.log('Something went wrong');
@@ -60,11 +60,11 @@ class Account {
     }
 
     updateUser = async (c, next) => {
-        const id = c.req.param();
+        const id = c.req.param('id');
         const data = await c.req.json();
 
         const val = updateAccountSchema.safeParse(data);
-        if (!val.success) return c.text("Validation faild", 400);
+        if (!val.success) return c.json(new HttpException(400, [val.error.issues[0].message] ?? 'Validation error'), 400);
 
         const tableName = this.tbluserdetails;
         const set = {
@@ -72,16 +72,16 @@ class Account {
             lastname: data.last_name,
         };
         const where = {
-            fkUsercount: id.id,
+            fkUsercount: id,
         };
 
         //get data to validate if user and users detail exist
-        const getData = await MyModel.getOne(tableName, where);
-        const getDataResult = await c.env.DB.prepare(getData).bind(id.id).run();
+        const { sql, values } = await MyModel.getOne(tableName, where);
+        const getDataResult = await c.env.DB.prepare(sql).bind(...values).run();
 
         if (Array.isArray(getDataResult.results) && getDataResult.results.length > 0) {
-            const result = await MyModel.update(tableName, set, where);
-            const resultData = await c.env.DB.prepare(result).bind(set.firstname, set.lastname, id.id,).run();
+            const { sql, values } = await MyModel.update(tableName, set, where);
+            const resultData = await c.env.DB.prepare(sql).bind(...values).run();
 
             if (!resultData) {
                 return c.text("Data not found!", 404);
@@ -94,22 +94,22 @@ class Account {
     }
 
     deleteUser = async (c, next) => {
-        const id = c.req.param();
+        const id = c.req.param('id');
 
         const tableName = this.tbluserdetails;
         const where = {
-            fkUsercount: id.id,
+            fkUsercount: id,
         };
 
         //get data to validate if user and users detail exist
         const getData = await MyModel.getOne(tableName, where);
-        const getDataResult = await c.env.DB.prepare(getData).bind(id.id).run();
+        const getDataResult = await c.env.DB.prepare(getData).bind(id).run();
 
         console.log(getDataResult.results);
 
         if (Array.isArray(getDataResult.results) && getDataResult.results.length > 0) {
             const result = await MyModel.delete(tableName, where);
-            const resultDelete = await c.env.DB.prepare(result).bind(id.id).run();
+            const resultDelete = await c.env.DB.prepare(result).bind(id).run();
 
             if (!resultDelete) {
                 return c.text("Data not found!", 404);
@@ -117,11 +117,11 @@ class Account {
 
             const tableNameUser = this.tableName;
             const whereUser = {
-                count: id.id,
+                count: id,
             };
 
             const resultUser = await MyModel.delete(tableNameUser, whereUser);
-            const resultDeleteUser = await c.env.DB.prepare(resultUser).bind(id.id).run();
+            const resultDeleteUser = await c.env.DB.prepare(resultUser).bind(id).run();
 
             return c.text("Account deleted!");
 
@@ -138,8 +138,8 @@ class Account {
             join: { "userdetails": "userdetails.fkUsercount = users.count" }
         }
 
-        const getAccountId = await MyModel.getRows(tableName, options);
-        const result = await c.env.DB.prepare(getAccountId).all();
+        const { sql, values } = await MyModel.getRows(tableName, options);
+        const result = await c.env.DB.prepare(sql).bind(...values).all();
 
         if (!result) {
             return c.text("Data not found!", 404);
@@ -149,30 +149,15 @@ class Account {
 
     getUser = async (c, next) => {
         const tableName = this.tableName;
-        const id = c.req.param();
+        const id = c.req.param('id');
         const options = {
             select: 'users.count,email,firstname,lastname',
             where: { "users.count": id },
-            //  where_in   : {
-            //         "col"   : 'user_detail_id',
-            //         "value" : [12,19]
-            //  },
-            //   where_not_in   : {
-            //         "col"   : 'user_detail_id',
-            //         "value" : [12,19,20]
-            //  },
-            // or_where : {
-            //     first_name :"first",
-            //     last_name  :"last"
-            // },
-            // order    : ' user_id DESC ', // PUT  COMMA SEPARTOR INSIDE STRING IF 2 COLUMNS
-            // group       : 'first_name,last_name', // PUT  COMMA SEPARTOR INSIDE STRING IF 2 COLUMNS
-            // limit       : '5,35',  
             join: { "userdetails": "userdetails.fkUsercount = users.count" }
         }
 
-        const getAccountId = await MyModel.getRows(tableName, options);
-        const result = await c.env.DB.prepare(getAccountId).bind(id.id).all();
+        const { sql, values } = await MyModel.getRows(tableName, options);
+        const result = await c.env.DB.prepare(sql).bind(...values).all();
 
         if (!result) {
             throw new HttpException(404, "Entities  not found");

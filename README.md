@@ -1,4 +1,5 @@
 - wrangler d1 create RENOSPHERE
 - wrangler d1 migrations create RENOSPHERE "<MIGRATION_NAME>"
+- wrangler d1 migrations apply <DATABASE_NAME> [OPTIONS]
 - wrangler dev --remote
 - npx wrangler deploy

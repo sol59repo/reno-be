@@ -2,6 +2,7 @@ import { sign } from 'hono/jwt'
 const MyModel = require('../../../models/MyModel');
 const HttpException = require('../../../utils/HttpException.utils');
 // const { validationResult } = require('express-validator');
+const { logInScehma, } = require("../validators/login.validator");
 const { sendEmail } = require('../../../utils/common.utils');
 const { formatData } = require("../../../utils/settings");
 const bcrypt = require('bcryptjs');
@@ -20,6 +21,11 @@ class Login {
         // this.checkValidation(req);
         const body = await c.req.json();
         const { ID, password: pass } = body;
+
+        const val = logInScehma.safeParse(body);
+
+        if (!val.success) return c.json(new HttpException(400, [val.error.issues[0].message] ?? 'Validation error'), 400);
+
         const tableName = this.tblUser;
         const options = {
             select: 'users.count,ID,password,usertype,status,firstname,lastname,email,avatar',
@@ -32,9 +38,11 @@ class Login {
         const { sql, values } = await MyModel.getRows(tableName, options);
         const userLogin = await c.env.DB.prepare(sql).bind(...values).all();
 
-        if (!userLogin) {
+
+        if (userLogin.results.length === 0) {
             return c.json(new HttpException(404, ['Incorrect ID!']), 404);
         }
+
 
         const account = userLogin.results[0];
         if (account.status !== "Active") {
@@ -42,7 +50,6 @@ class Login {
         }
 
         const isMatch = await bcrypt.compare(pass, account.password);
-
         if (!isMatch) {
             console.log('!isMatch');
             throw new HttpException(401, ['Incorrect password!']);

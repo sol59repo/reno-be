@@ -4,6 +4,7 @@ const HttpException = require('../../../utils/HttpException.utils');
 const bcrypt = require('bcryptjs');
 const { formatData } = require("../../../utils/settings")
 const { formatDate } = require("../../../utils/helper")
+const { employeeScema, employeeUpdateInfoScema} = require("../validators/employee.validator");
 
 
 /******************************************************************************
@@ -64,6 +65,10 @@ class Employee {
             usertype
         } = body
 
+        const val = employeeScema.safeParse(body);
+
+        if (!val.success) return c.json(new HttpException(400, [val.error.issues[0].message] ?? 'Validation error'), 400);
+
         // this.checkValidation(req);
 
         let usersData = {
@@ -118,6 +123,10 @@ class Employee {
             fkUsercount,
             zoomLink
         } = body
+
+        const val = employeeUpdateInfoScema.safeParse(body);
+
+        if (!val.success) return c.json(new HttpException(400, [val.error.issues[0].message] ?? 'Validation error'), 400);
 
         const set = {
             Email: Email,

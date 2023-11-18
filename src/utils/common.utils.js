@@ -59,10 +59,10 @@ exports.multipleColumnWhere = (object) => {
             k = k.replace('<>', '');
             k = k.replace('!=', '');
             return ` ${k} !=?`;
-        } else if(key.includes('>=')){
+        } else if (key.includes('>=')) {
             k = k.replace('>=', '');
             return ` ${k} >=?`;
-        } else if(key.includes('<=')){
+        } else if (key.includes('<=')) {
             k = k.replace('<=', '');
             return ` ${k} <=?`;
         } else {
@@ -262,19 +262,19 @@ const bytesToSize = (bytes, precision) => {
 
 exports.generateUserprefix = async () => {
     var date = new Date();
-    var year =  date.getFullYear().toString().slice(-2);
-    var month =  ("0"+(date.getMonth()+1)).slice(-2);
-    return  year+month+"-";
+    var year = date.getFullYear().toString().slice(-2);
+    var month = ("0" + (date.getMonth() + 1)).slice(-2);
+    return year + month + "-";
 }
 
 exports.generateBorrowerprefix = async () => {
     var date = new Date();
-    var year =  date.getFullYear().toString().slice(-2);
-    var month =  ("0"+(date.getMonth()+1)).slice(-2);
-    return  year+month+"-";
+    var year = date.getFullYear().toString().slice(-2);
+    var month = ("0" + (date.getMonth() + 1)).slice(-2);
+    return year + month + "-";
 }
 
 
-exports.generateId = async (prefix,n) => {
-    return  prefix + (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
+exports.generateId = async (prefix, n) => {
+    return prefix + (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
 }
