@@ -1,4 +1,4 @@
-name = "reno"
+name = "renosphere"
 main = "src/index.js"
 compatibility_date = "2023-09-22"
 
@@ -6,7 +6,6 @@ compatibility_date = "2023-09-22"
 # Note: Use secrets to store sensitive data.
 # Docs: https://developers.cloudflare.com/workers/platform/environment-variables
 # [vars]
-# MY_VARIABLE = "production_value"
 
 # Bind a KV Namespace. Use KV as persistent storage for small key-value pairs.
 # Docs: https://developers.cloudflare.com/workers/runtime-apis/kv
@@ -51,10 +50,6 @@ compatibility_date = "2023-09-22"
 # new_classes = ["MyDurableObject"]
 
 [[d1_databases]]
-binding = "DB" # i.e. available in your Worker on env.DB
+binding = "DB"                                       # i.e. available in your Worker on env.DB
 database_name = "reno"
-database_id = "fd8cc473-10f3-4d0f-9854-cf056afe16aa"
-
-SECRET_JWT="reno#@!@2022"
-ZOOM_JWT_API_KEY="EXBI9itzQBO-826YW5db4w"
-ZOOM_JWT_API_SECRET="wSzAhIy8i5ntjctw4RYkzAdZh8vTkw0Wo2x6"
+database_id = "04394153-a312-48a5-91dd-5c70afa20fed"
