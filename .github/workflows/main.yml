@@ -4,9 +4,9 @@
   uses: cloudflare/wrangler-action@v3.1.0
   with:
     # Your Cloudflare API Token
-    apiToken: # optional
+    apiToken: G2QGtU9FVJ9508d6qO9G0DEFJO55KG_w2XQBXiFn # optional
     # Your Cloudflare Account ID
-    accountId: # optional
+    accountId: d6643a2b0c0f621a93e209bbd5391e8e # optional
     # Supresses output from Wrangler commands, defaults to `false`
     quiet: # optional, default is false
     # The environment you'd like to deploy your Workers project to - must be defined in wrangler.toml
