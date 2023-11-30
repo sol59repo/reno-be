@@ -2,7 +2,6 @@ import * as MyModel from '../../../models/MyModel'
 import { HTTPException } from 'hono/http-exception'
 import { Buffer } from 'node:buffer';
 const HttpException = require('../../../utils/HttpException.utils');
-const bcrypt = require('bcryptjs');
 const { formatData } = require("../../../utils/settings")
 const { formatDate } = require("../../../utils/helper")
 const shortid = require("shortid");
