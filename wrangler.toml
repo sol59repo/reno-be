@@ -1,6 +1,7 @@
 name = "renosphere"
 main = "src/index.js"
 compatibility_date = "2023-09-22"
+
 compatibility_flags = ["nodejs_compat"]
 
 # Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)
