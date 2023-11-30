@@ -12,4 +12,4 @@ jspm_packages
 
 /.wrangler
 
-# wrangler.toml
+wrangler.toml
