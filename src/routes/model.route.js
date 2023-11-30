@@ -4,13 +4,13 @@ const router = new Hono()
 const awaitHandlerFactory = require("../middleware/awaitHandlerFactory.middleware");
 const modelController = require("../modules/model/controllers/model.controller");
 
-router.get('/matterportmodels', awaitHandlerFactory(modelController.getMatterportModels));
+router.get('/matterportmodels', awaitHandlerFactory(modelController.getMatterportModels)); //converted
 router.post('/addProject', awaitHandlerFactory(modelController.addProject)); //converted
-router.post('/AddToProject', awaitHandlerFactory(modelController.AddToProject));
+router.post('/AddToProject', awaitHandlerFactory(modelController.AddToProject)); //converted
 router.post('/saveModelChanges', awaitHandlerFactory(modelController.saveModelChanges));
 router.post('/getProjects', awaitHandlerFactory(modelController.getProjects)); //converted
-router.post('/updateStatus', awaitHandlerFactory(modelController.updateStatus));
-router.post('/updateSpaceStatus', awaitHandlerFactory(modelController.updateSpaceStatus));
+router.post('/updateStatus', awaitHandlerFactory(modelController.updateStatus)); // converted
+router.post('/updateSpaceStatus', awaitHandlerFactory(modelController.updateSpaceStatus)); //converted
 router.post('/updateAttendanceAvailability', awaitHandlerFactory(modelController.updateAttendanceAvailability));
 router.get('/getMeasurements/:id', awaitHandlerFactory(modelController.getMeasurements));
 router.get('/getLocationName/:id', awaitHandlerFactory(modelController.getLocationName)); //converted
@@ -25,10 +25,10 @@ router.get('/getSingleAttendanceLogs/:id', awaitHandlerFactory(modelController.g
 router.get('/getAsignedManager/:id', awaitHandlerFactory(modelController.getAsignedManager)); //converted
 router.get('/getAsignedMaterials/:id', awaitHandlerFactory(modelController.getAsignedMaterials)); //converted
 router.get('/getProject/:id', awaitHandlerFactory(modelController.getProject)); //converted
-router.get('/getProjectSpace/:id', awaitHandlerFactory(modelController.getProjectSpace));
+router.get('/getProjectSpace/:id', awaitHandlerFactory(modelController.getProjectSpace)); // converted
 router.get('/getAllStaffs', awaitHandlerFactory(modelController.getAllStaffs)); //converted
 router.post('/getAttendance', awaitHandlerFactory(modelController.getAttendance)); //converted
-router.post('/getEmployeesAttendance', awaitHandlerFactory(modelController.getEmployeesAttendance));
+router.post('/getEmployeesAttendance', awaitHandlerFactory(modelController.getEmployeesAttendance)); //converted
 router.post('/getEmployeeAttendance', awaitHandlerFactory(modelController.getEmployeeAttendance));
 router.get('/getAllManagers', awaitHandlerFactory(modelController.getAllManagers)); //converted
 router.get('/getAllMaterials', awaitHandlerFactory(modelController.getAllMaterials)); //converted
@@ -41,7 +41,7 @@ router.post('/sendticketCardMembers', awaitHandlerFactory(modelController.sendti
 router.post('/initComments', awaitHandlerFactory(modelController.initComments));
 router.post('/asignStaff', awaitHandlerFactory(modelController.asignStaff)); // converted
 router.post('/addMaterial', awaitHandlerFactory(modelController.addMaterial));
-router.post('/qtyUpdate', awaitHandlerFactory(modelController.qtyUpdate));
+router.post('/qtyUpdate', awaitHandlerFactory(modelController.qtyUpdate));//converted
 router.post('/updateAsignmentStatus', awaitHandlerFactory(modelController.updateAsignmentStatus)); //converted
 router.post('/updateAdeddConsumableStatus', awaitHandlerFactory(modelController.updateAdeddConsumableStatus));
 router.post('/submitAction', awaitHandlerFactory(modelController.submitAction));
@@ -59,12 +59,12 @@ router.post('/updateCardInfo', awaitHandlerFactory(modelController.updateCardInf
 router.post('/renameList', awaitHandlerFactory(modelController.renameList));
 router.get('/getCardLists/:id', awaitHandlerFactory(modelController.getCardLists)); //converted
 router.get('/getSequence/:id', awaitHandlerFactory(modelController.getSequence)); // converted
-router.get('/getPoDetails/:id', awaitHandlerFactory(modelController.getPoDetails));
-router.get('/getProjectConsumableLogs/:id', awaitHandlerFactory(modelController.getProjectConsumableLogs));
-router.post('/getSpaces/', awaitHandlerFactory(modelController.getSpaces)); //converted
+router.get('/getPoDetails/:id', awaitHandlerFactory(modelController.getPoDetails)); //converted
+router.get('/getProjectConsumableLogs/:id', awaitHandlerFactory(modelController.getProjectConsumableLogs));//converted
+router.post('/getSpaces', awaitHandlerFactory(modelController.getSpaces)); //converted
 router.post('/gePO', awaitHandlerFactory(modelController.gePO)); //converted
-router.post('/addPO', awaitHandlerFactory(modelController.addPO));
-router.post('/acknowledgeOrders', awaitHandlerFactory(modelController.acknowledgeOrders));
+router.post('/addPO', awaitHandlerFactory(modelController.addPO)); //converted
+router.post('/acknowledgeOrders', awaitHandlerFactory(modelController.acknowledgeOrders)); //converted
 router.post('/archiveList', awaitHandlerFactory(modelController.archiveList));
 router.post('/archiveCard', awaitHandlerFactory(modelController.archiveCard));
 router.post('/deleteAttachment', awaitHandlerFactory(modelController.deleteAttachment));

@@ -1,5 +1,6 @@
 import * as MyModel from '../../../models/MyModel'
 import { HTTPException } from 'hono/http-exception'
+import { Buffer } from 'node:buffer';
 const HttpException = require('../../../utils/HttpException.utils');
 const bcrypt = require('bcryptjs');
 const { formatData } = require("../../../utils/settings")
@@ -14,10 +15,21 @@ class Model {
     tblprojectModels = "projectModels";
     tblmeasurements = "measurements";
 
-    getMatterportModels = async (req, res, next) => {
-        const token = process.env.TOKEN_ID;
-        const secret = process.env.TOKEN_SECRET;
-        const mp_url = process.env.MP_URL;
+
+    isInArray = (addedSpaces, obj) => {
+        var i;
+        for (i = 0; i < addedSpaces.length; i++) {
+            if (addedSpaces[i].spaceId === obj.id) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    getMatterportModels = async (c, next) => {
+        const token = c.env.TOKEN_ID;
+        const secret = c.env.TOKEN_SECRET;
+        const mp_url = c.env.MP_URL;
         const auth = Buffer.from(token + ":" + secret).toString("base64");
         const _body = JSON.stringify({
             query: `
@@ -47,22 +59,29 @@ class Model {
         });
 
         let data = await response.json();
-        const getAllAddedSpaces = await MyModel.getRows("projectModelSpaces", {
+
+        // const getAllAddedSpaces = await MyModel.getRows("projectModelSpaces", {
+        //     select: "spaceId",
+        // });
+
+        const { sql, values } = await MyModel.getRows("projectModelSpaces", {
             select: "spaceId",
         });
+        const getAllAddedSpaces = await c.env.DB.prepare(sql).bind(...values).all();
 
         const filterModels = data.data.models.results.filter((val) => {
-            const checked = this.isInArray(getAllAddedSpaces, val);
+            const checked = this.isInArray(getAllAddedSpaces.results, val);
             if (checked) return false;
             return true;
         });
 
         const formatted = formatData({ models: filterModels });
-        res.status(200).send(formatted);
+        return c.json(formatted);
     };
 
-    qtyUpdate = async (req, res, next) => {
-        const { data, modelId, addedBy } = req.body;
+    qtyUpdate = async (c, next) => {
+        const body = await c.req.json();
+        const { data, modelId, addedBy } = body;
 
         let response = 0;
         var i;
@@ -76,35 +95,45 @@ class Model {
                 count: data[i].count,
             };
 
-            response = await MyModel.update("projectConsumables", set, where);
+            // response = await MyModel.update("projectConsumables", set, where);
+
+            const { sql, values } = await MyModel.update("projectConsumables", set, where);
+            response = await c.env.DB.prepare(sql).bind(...values).run();
         }
+
+        const description = data[0] === "Minus" ? 'Subtracting of quantity to materials' : 'Adding of quantity to materials';
+        const type = data[0] === "Minues" ? 'Consumed Qty' : 'Add Qty';
 
         const logData = {
             ID: shortid.generate(),
             fkModel: modelId,
             refId: "n/a",
-            description:
-                data[0].type === "Minus"
-                    ? "Subtracting of quantity to materials"
-                    : "Adding of quantity to materials",
-            dateTime: new Date(),
+            description: description,
+            dateTime: new Date().toString(),
             addedBy: addedBy,
-            type: data[0].type === "Minus" ? "Consumed Qty" : "Add Qty",
+            type: type,
         };
 
-        await MyModel.insert("consumableLogs", logData);
+        // await MyModel.insert("consumableLogs", logData);
 
-        const { affectedRows, changedRows, info } = response;
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
+        const { sql, values } = await MyModel.insert("consumableLogs", logData);
+        await c.env.DB.prepare(sql).bind(...values).run();
 
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        // const { affectedRows, changedRows, info } = response.results;
+        // const message = !affectedRows
+        //     ? "Data not found"
+        //     : affectedRows && changedRows
+        //         ? "Data updated successfully"
+        //         : affectedRows && !changedRows
+        //             ? "Data was found but already up to date"
+        //             : "Update failed!";
+
+        // return await c.json(response);
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${response.meta.rows_written}  Changed: ${response.meta.changes}`
+        });
+        return c.json(formatted);
     };
 
     addAttendanceData = async (c, next) => {
@@ -216,8 +245,9 @@ class Model {
         return c.json(formatted);
     };
 
-    AddToProject = async (req, res, next) => {
-        const { spaceId, fkModel, location, addedBy } = req.body;
+    AddToProject = async (c, next) => {
+        const body = await c.req.json();
+        const { spaceId, fkModel, location, addedBy } = body;
 
         const projectData = {
             spaceId: spaceId,
@@ -227,15 +257,17 @@ class Model {
             location: location,
         };
 
-        const result = await MyModel.insert("projectModelSpaces", projectData);
-        if (result === 0) {
-            throw new HttpException(500, "Something went wrong adding of projects");
+        const { sql, values } = await MyModel.getRows("projectModelSpaces", projectData);
+        const result = await c.env.DB.prepare(sql).bind(...values).all();
+
+        if (!result) {
+            throw c.json(new HttpException(404, "Employees  not found!"));
         }
         const formatted = formatData({
             message: "Project was added!",
-            insertId: result,
+            insertId: result.meta.last_row_id,
         });
-        res.status(200).send(formatted);
+        return c.json(formatted);
     };
 
     getProjects = async (c, next) => {
@@ -275,6 +307,7 @@ class Model {
         }
 
         const { sql, values } = await MyModel.getRows(tbl, options);
+        // return c.json( sql);
         const result = await c.env.DB.prepare(sql).bind(...values).all();
 
         if (!result.success) {
@@ -454,8 +487,8 @@ class Model {
         return c.json(formatted);
     };
 
-    getProjectSpace = async (req, res, next) => {
-        const { id } = req.params;
+    getProjectSpace = async (c, next) => {
+        const id = c.req.param('id');
         const options = {
             select: `
            projectModelSpaces.*
@@ -465,16 +498,19 @@ class Model {
             },
         };
 
-        const response = await MyModel.getRows("projectModelSpaces", options);
+        // const response = await MyModel.getRows("projectModelSpaces", options);
+
+        const { sql, values } = await MyModel.getRows("projectModelSpaces", options);
+        const response = await c.env.DB.prepare(sql).bind(...values).all();
 
         console.log("response", response);
 
         if (!response) {
-            throw new HttpException(404, "project Models not found");
+            throw c.json(new HttpException(404, "project Models not found"));
         }
 
-        const formatted = formatData(response);
-        res.status(200).send(formatted);
+        const formatted = formatData(response.results);
+        return c.json(formatted);
     };
 
     getProject = async (c, next) => {
@@ -812,30 +848,37 @@ class Model {
         res.status(200).send(formatted);
     };
 
-    updateSpaceStatus = async (req, res, next) => {
+    updateSpaceStatus = async (c, next) => {
+        const body = await c.req.json();
+
         const set = {
-            status: req.body.status,
+            status: body.status,
         };
         const where = {
-            spaceId: req.body.spaceId,
+            spaceId: body.spaceId,
         };
 
-        const result = await MyModel.update("projectModelSpaces", set, where);
+        // const result = await MyModel.update("projectModelSpaces", set, where);
+
+        const { sql, values } = await MyModel.update("projectModelSpaces", set, where);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
         if (!result) {
-            throw new HttpException(404, "Something went wrong");
+            throw c.json(new HttpException(404, "Something went wrong"));
         }
 
         const { affectedRows, changedRows, info } = result;
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
+        // const message = !affectedRows
+        const message = "Data updated successfully";
+            // ? "Data not found"
+            // : affectedRows && changedRows
+            //     ? "Data updated successfully"
+            //     : affectedRows && !changedRows
+            //         ? "Data was found but already up to date"
+            //         : "Update failed!";
 
         const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        // res.status(200).send(formatted);
+        return c.json(formatted);
     };
 
     updateStatus = async (c, next) => {
@@ -1828,7 +1871,7 @@ class Model {
             modelId: modelId,
             addedBy: addedBy,
             status: "For Approval",
-            dateAdded: new Date(),
+            dateAdded: new Date().toDateString(),
         };
 
         if (Items.length === 0) {
@@ -1907,7 +1950,7 @@ class Model {
             fkModel: modelId,
             refId: result.meta.last_row_id,
             description: "New Order added.",
-            dateTime: new Date(),
+            dateTime: new Date().toDateString(),
             addedBy: addedBy,
             type: "Add PO",
         };
@@ -1963,8 +2006,8 @@ class Model {
         return c.json(formatted);
     };
 
-    getPoDetails = async (req, res, next) => {
-        const { id } = req.params;
+    getPoDetails = async (c, next) => {
+        const id = c.req.param('id');
 
         let options = {
             select: `
@@ -1982,17 +2025,19 @@ class Model {
             },
         };
 
-        const response = await MyModel.getRows("orderDetails", options);
+        const { sql, values } = await MyModel.getRows("orderDetails", options);
+        const response = await c.env.DB.prepare(sql).bind(...values).all();
         if (!response) {
-            throw new HttpException(404, "Projects  not found");
+            throw c.json(new HttpException(404, "Projects  not found"));
         }
 
-        const formatted = formatData(response);
-        res.status(200).send(formatted);
+        const formatted = formatData(response.results);
+        return c.json(formatted);
     };
 
-    acknowledgeOrders = async (req, res, next) => {
-        const { count, status, Items, ProjectCount, addedby, modelId } = req.body;
+    acknowledgeOrders = async (c, next) => {
+        const body = await c.req.json();
+        const { count, status, Items, ProjectCount, addedby, modelId } = body;
 
         const set = {
             status: status,
@@ -2002,10 +2047,15 @@ class Model {
             count: count,
         };
 
-        const result = await MyModel.update("purchaseOrder", set, where);
+        // const result = await MyModel.update("purchaseOrder", set, where);
+
+        const { sql, values } = await MyModel.update("purchaseOrder", set, where);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+
         if (!result) {
-            throw new HttpException(404, "Something went wrong");
+            throw c.json(new HttpException(404, "Something went wrong"));
         }
+        let message = '';
 
         var i;
         for (i = 0; i < Items.length; i++) {
@@ -2013,66 +2063,78 @@ class Model {
                 qty: parseFloat(Items[i].TotalQty) - parseFloat(Items[i].orderQty),
             };
             const whereUpdateHeadItems = { count: Items[i].fkItemCount };
-            await MyModel.update(
-                "consumables",
-                setUpdateHeadItems,
-                whereUpdateHeadItems
-            );
 
-            const checkExists = await MyModel.getRows("projectConsumables", {
-                select: "qty",
-                where: { fkProject: ProjectCount, fkConsumables: Items[i].fkItemCount },
-            });
+            const { sql, values } = await MyModel.update("consumables", setUpdateHeadItems, whereUpdateHeadItems);
+            const updateConsumables = await c.env.DB.prepare(sql).bind(...values).run();
 
-            if (checkExists.length > 0) {
-                const setUpdateProjecttems = {
-                    qty: parseFloat(checkExists[0].qty) + parseFloat(Items[i].orderQty),
-                };
-                const whereUpdateProjecttems = {
-                    fkConsumables: Items[i].fkItemCount,
-                    fkProject: ProjectCount,
-                };
+            if (updateConsumables.success) {
 
-                await MyModel.update(
-                    "projectConsumables",
-                    setUpdateProjecttems,
-                    whereUpdateProjecttems
-                );
+                const { sql, values } = await MyModel.getRows("projectConsumables", {
+                    select: "qty",
+                    where: { fkProject: ProjectCount, fkConsumables: Items[i].fkItemCount },
+                });
+                const checkExists = await c.env.DB.prepare(sql).bind(...values).all();
+
+                if (checkExists.results.length > 0) {
+                    message = 'Data was found but already up to date'
+                } else {
+                    message = 'Data updated successfully'
+                }
+
+                if (checkExists.success && checkExists.results.length > 0) {
+                    const setUpdateProjecttems = {
+                        qty: parseFloat(checkExists[0].qty) + parseFloat(Items[i].orderQty),
+                    };
+                    const whereUpdateProjecttems = {
+                        fkConsumables: Items[i].fkItemCount,
+                        fkProject: ProjectCount,
+                    };
+
+                    const { sql, values } = await MyModel.update("projectConsumables", setUpdateProjecttems, whereUpdateProjecttems);
+                    const updateProjectConsumable = await c.env.DB.prepare(sql).bind(...values).run();
+                }
+
             } else {
-                await MyModel.insert("projectConsumables", {
+                const { sql, values } = await MyModel.insert("projectConsumables", {
                     fkProject: ProjectCount,
                     fkConsumables: Items[i].fkItemCount,
-                    dateAdded: new Date().getTime(),
+                    dateAdded: new Date().toDateString(),
                     status: "In-Stock",
                     addedBy: addedby,
                     qty: Items[i].orderQty,
                 });
+                const projectConsumableInsert = await c.env.DB.prepare(sql).bind(...values).run();
+
+                return c.json(projectConsumableInsert);
             }
         }
 
-        const logData = {
-            ID: shortid.generate(),
-            fkModel: modelId,
-            refId: count,
-            description: "Acknowleged Order by user",
-            dateTime: new Date(),
-            addedBy: addedby,
-            type: "Acknowleged PO",
-        };
+        if (result.success) {
+            const logData = {
+                ID: shortid.generate(),
+                fkModel: modelId,
+                refId: count,
+                description: "Acknowleged Order by user",
+                dateTime: new Date().toDateString(),
+                addedBy: addedby,
+                type: "Acknowleged PO",
+            };
 
-        await MyModel.insert("consumableLogs", logData);
+            const { sql, values } = await MyModel.insert("consumableLogs", logData);
+            await c.env.DB.prepare(sql).bind(...values).run();
+        }
 
         const { affectedRows, changedRows, info } = result;
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
+        // const message = !affectedRows
+        //     ? "Data not found"
+        //     : affectedRows && changedRows
+        //         ? "Data updated successfully"
+        //         : affectedRows && !changedRows
+        //             ? "Data was found but already up to date"
+        //             : "Update failed!";
 
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        const formatted = formatData({ message });
+        return c.json(formatted);
     };
 
     getSpaces = async (c, next) => {
@@ -2101,8 +2163,8 @@ class Model {
         return c.json(formatted);
     };
 
-    getProjectConsumableLogs = async (req, res, next) => {
-        const { id } = req.params;
+    getProjectConsumableLogs = async (c, next) => {
+        const id = c.req.param('id');
 
         let options = {
             select: `
@@ -2117,13 +2179,14 @@ class Model {
             },
         };
 
-        const response = await MyModel.getRows("consumableLogs", options);
+        const { sql, values } = await MyModel.getRows("consumableLogs", options);
+        const response = await c.env.DB.prepare(sql).bind(...values).all();
         if (!response) {
-            throw new HttpException(404, "Projects  not found");
+            throw c.json(new HttpException(404, "Projects  not found"));
         }
 
-        const formatted = formatData(response);
-        res.status(200).send(formatted);
+        const formatted = formatData(response.results);
+        return c.json(formatted);
     };
 
     deleteAttachment = async (req, res, next) => {

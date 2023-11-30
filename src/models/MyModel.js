@@ -60,6 +60,7 @@ class MyModel {
         if (options.limit !== undefined && options.limit !== "") {
             sql += ` LIMIT  ${options.limit}`
         }
+        
         return {
             sql,
             values: values
