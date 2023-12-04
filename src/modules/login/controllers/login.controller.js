@@ -56,7 +56,10 @@ class Login {
         }
 
         const secretKey = "reno#@!@2022";
-        const token = await sign({ user_id: account.count.toString() }, secretKey)
+        const token = await sign({
+            user_id: account.count.toString(),
+            exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
+        }, secretKey)
         const { password, ...userWithoutPassword } = account;
         const response = formatData({ ...userWithoutPassword, token: token })
         return c.json(response);
