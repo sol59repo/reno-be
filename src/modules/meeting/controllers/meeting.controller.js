@@ -202,9 +202,10 @@ class Meeting {
             type: type
         }
 
-
         const { sql, values } = await MyModel.insert("meeting", meetingData);
+
         const result = await c.env.DB.prepare(sql).bind(...values).run();
+
 
         if (result.meta.last_row_id == 0) {
             return c.json(new HttpException(400, 'Something went wrong adding attendance'), 400);
@@ -213,15 +214,42 @@ class Meeting {
         var i;
         for (i = 0; i < atendees.length; i++) {
             const meetingAttendees = {
-                fkMeetingCount: result.meta.last_row_id,
-                fkUserCount: atendees[i].count,
+                fkMeetingCount: result.meta.last_row_id.toString(),
+                fkUserCount: atendees[i].count.toString(),
                 attendStatus: "Active"
             }
+
             const { sql: sql_attendees, values: values_attendees } = await MyModel.insert('meetingAttendees', meetingAttendees);
             await c.env.DB.prepare(sql_attendees).bind(...values_attendees).run();
         }
 
         const formatted = formatData({ message: 'Meeting was created!', insertId: result.meta.last_row_id });
+        return c.json(formatted);
+    }
+
+    removeMeeting = async (c, next) => {
+        const body = await c.req.json();
+        const { meetingCount } = body
+
+        const { sql: sql_meeting_delete, values: values_meeting_delete } = await MyModel.delete('meeting', {
+            count: meetingCount,
+        });
+
+        const { sql: sql_meetingAttendees_delete, values: values_meetingAttendees_delete } = await MyModel.delete('meetingAttendees', {
+            fkMeetingCount: meetingCount,
+        });
+
+        const result = await Promise.all([
+            c.env.DB.prepare(sql_meeting_delete).bind(...values_meeting_delete).run(),
+            c.env.DB.prepare(sql_meetingAttendees_delete).bind(...values_meetingAttendees_delete).run()
+        ])
+        if (!result) {
+            return c.json(new HttpException(400, 'Something went wrong deleting of meeting'), 400);
+        }
+
+        const message = 'Data was found but already up to date';
+
+        const formatted = formatData({ message });
         return c.json(formatted);
     }
 
@@ -252,31 +280,33 @@ class Meeting {
         return c.json(formatted);
     }
 
-    // getMeetingAttendee = async (req, res, next) => {
-    //     const { id } = req.params
+    getMeetingAttendee = async (c, next) => {
+        const id = c.req.param('id')
 
-    //     const options = {
-    //         "select": `
-    //           CONCAT(userdetails.firstname,' ', userdetails.lastname) name,
-    //           avatar,
-    //           userdetails.fkUsercount,
-    //           meetingAttendees.count as AttendeeCount
-    //         `,
-    //         "where": {
-    //             "fkMeetingCount": id
-    //         },
-    //         "join": {
-    //             "userdetails": "userdetails.fkUsercount=meetingAttendees.fkUserCount"
-    //         }
-    //     }
+        const options = {
+            "select": `
+              CONCAT(userdetails.firstname,' ', userdetails.lastname) name,
+              avatar,
+              userdetails.fkUsercount,
+              meetingAttendees.count as AttendeeCount
+            `,
+            "where": {
+                "fkMeetingCount": id
+            },
+            "join": {
+                "userdetails": "userdetails.fkUsercount=meetingAttendees.fkUserCount"
+            }
+        }
 
-    //     const response = await MyModel.getRows('meetingAttendees', options);
-    //     if (!response) {
-    //         throw new HttpException(404, 'Meetings  not found');
-    //     }
-    //     const formatted = formatData(response);
-    //     res.status(200).send(formatted);
-    // }
+        const { sql, values } = await MyModel.getRows("meetingAttendees", options);
+        const result = await c.env.DB.prepare(sql).bind(...values).all();
+        if (!result.success) {
+            throw c.json(new HttpException(404, 'meetingAttendees  not found'), 404);
+
+        }
+        const formatted = formatData(result.results);
+        return c.json(formatted);
+    }
 
 
     // addParticipants = async (req, res, next) => {
@@ -315,27 +345,6 @@ class Meeting {
     //     const formatted = formatData({ message });
     //     res.status(200).send(formatted);
     // }
-
-    // removeMeeting = async (req, res, next) => {
-    //     const result1 = await MyModel.delete('meeting', {
-    //         count: req.body.meetingCount,
-    //     });
-
-    //     const result2 = await MyModel.delete('meetingAttendees', {
-    //         fkMeetingCount: req.body.meetingCount,
-    //     });
-
-    //     if (!result2) {
-    //         throw new HttpException(404, 'Something went wrong');
-    //     }
-
-    //     const message = 'Data was found but already up to date';
-
-    //     const formatted = formatData({ message });
-    //     res.status(200).send(formatted);
-    // }
-
-
 
 }
 

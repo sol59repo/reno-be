@@ -1,4 +1,5 @@
-name = "renosphere"
+# name = "renosphere" # live
+name = "reno"   # dev
 main = "src/index.js"
 compatibility_date = "2023-09-22"
 
@@ -54,4 +55,5 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"                                       # i.e. available in your Worker on env.DB
 database_name = "reno"
-database_id = "04394153-a312-48a5-91dd-5c70afa20fed"
+database_id = "fd8cc473-10f3-4d0f-9854-cf056afe16aa"  # dev
+# database_id = "04394153-a312-48a5-91dd-5c70afa20fed"  # live
