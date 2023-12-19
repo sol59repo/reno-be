@@ -2,6 +2,7 @@ import * as MyModel from '../../../models/MyModel'
 import { HTTPException } from 'hono/http-exception'
 import { Buffer } from 'node:buffer';
 const HttpException = require('../../../utils/HttpException.utils');
+const bcrypt = require('bcryptjs');
 const { formatData } = require("../../../utils/settings")
 const { formatDate } = require("../../../utils/helper")
 const shortid = require("shortid");
@@ -868,12 +869,12 @@ class Model {
         const { affectedRows, changedRows, info } = result;
         // const message = !affectedRows
         const message = "Data updated successfully";
-            // ? "Data not found"
-            // : affectedRows && changedRows
-            //     ? "Data updated successfully"
-            //     : affectedRows && !changedRows
-            //         ? "Data was found but already up to date"
-            //         : "Update failed!";
+        // ? "Data not found"
+        // : affectedRows && changedRows
+        //     ? "Data updated successfully"
+        //     : affectedRows && !changedRows
+        //         ? "Data was found but already up to date"
+        //         : "Update failed!";
 
         const formatted = formatData({ message, info });
         // res.status(200).send(formatted);
@@ -1276,8 +1277,9 @@ class Model {
         return c.json(formatted);
     };
 
-    getEmployeeAttendance = async (req, res, next) => {
-        const { from, to, fkUser } = req.body;
+    getEmployeeAttendance = async (c, next) => {
+        const body = await c.req.json();
+        const { from, to, fkUser } = body;
 
         let where = {
             "attendance.date >=": from,
@@ -1301,14 +1303,17 @@ class Model {
             },
         };
 
-        const response = await MyModel.getRows("attendance", options);
+        // const response = await MyModel.getRows("attendance", options);
+
+        const { sql, values } = await MyModel.getRows("attendance", options);
+        const response = await c.env.DB.prepare(sql).bind(...values).all();
 
         if (!response) {
-            throw new HttpException(404, "attendance  not found");
+            throw c.json(new HttpException(404, 'attendance  not found'));
         }
 
         const formatted = formatData(response);
-        res.status(200).send(formatted);
+        return c.json(formatted);
     };
 
     addTicket = async (req, res, next) => {

@@ -309,42 +309,50 @@ class Meeting {
     }
 
 
-    // addParticipants = async (req, res, next) => {
+    addParticipants = async (c, next) => {
+        const body = await c.req.json();
 
-    //     const { fkMeetingCount, fkUserCount, attendStatus } = req.body
+        const { fkMeetingCount, fkUserCount, attendStatus } = body
 
-    //     let meetingData = {
-    //         fkMeetingCount: fkMeetingCount,
-    //         fkUserCount: fkUserCount,
-    //         attendStatus: attendStatus
-    //     }
+        let meetingData = {
+            fkMeetingCount: fkMeetingCount,
+            fkUserCount: fkUserCount,
+            attendStatus: attendStatus
+        }
 
-    //     const result = await MyModel.insert(`meetingAttendees`, meetingData);
-    //     if (result == 0) {
-    //         throw new HttpException(500, 'Something went wrong adding meeting paticipants to database');
-    //     }
-    //     const formatted = formatData({ message: 'Participant was added!', insertId: result });
-    //     res.status(200).send(formatted);
-    // }
+        // const result = await MyModel.insert(`meetingAttendees`, meetingData);
+
+        const { sql, values } = await MyModel.insert("meetingAttendees", meetingData);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+
+        if (!result) {
+            throw c.json(new HttpException(500, "Something went wrong adding meeting paticipants to database"));
+        }
+        const formatted = formatData({ message: 'Participant was added!', insertId: result.meta.last_row_id, });
+        return c.json(formatted);
+    }
 
 
-    // removeAttendee = async (req, res, next) => {
-    //     const where = {
-    //         fkMeetingCount: req.body.meetingCount,
-    //         fkUserCount: req.body.count,
-    //     };
+    removeAttendee = async (c, next) => {
+        const body = await c.req.json();
+        const where = {
+            fkMeetingCount: body.meetingCount,
+            fkUserCount: body.count,
+        };
 
-    //     const result = await MyModel.delete('meetingAttendees', where);
-    //     if (!result) {
-    //         throw new HttpException(404, 'Something went wrong');
-    //     }
+        // const result = await MyModel.delete('meetingAttendees', where);
 
-    //     console.log(result);
-    //     const message = 'Data was found but already up to date';
+        const resultQuery = await MyModel.delete('meetingAttendees', where);
+        const resultDelete = await c.env.DB.prepare(resultQuery);
+        if (!resultDelete) {
+            throw c.json(new HttpException(404, "Something went wrong"));
 
-    //     const formatted = formatData({ message });
-    //     res.status(200).send(formatted);
-    // }
+        }
+        const message = 'Data was found but already up to date';
+
+        const formatted = formatData({ message });
+        return c.json(formatted);
+    }
 
 }
 

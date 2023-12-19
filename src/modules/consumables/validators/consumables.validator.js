@@ -8,7 +8,7 @@ exports.consumableSchema = z.object({
     itemName: z.string({
         required_error: "itemName is required",
     }),
-    addedBy: z.string({
+    addedBy: z.number({
         required_error: "addedBy is required",
     }),
     itemCode: z.string({
@@ -23,7 +23,7 @@ exports.consumableUpdateSchema = z.object({
     qty: z.string({
         required_error: "qty is required",
     }),
-    count: z.string({
+    count: z.number({
         required_error: "count is required",
     }),
 });
