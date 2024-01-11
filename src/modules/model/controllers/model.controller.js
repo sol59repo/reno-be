@@ -317,9 +317,9 @@ class Model {
         return c.json(formatted);
     };
 
-    getMeasurements = async (req, res, next) => {
+    getMeasurements = async (c, next) => {
         const tbl = this.tblmeasurements;
-        const { id } = req.params;
+        const id = c.req.param('id')
         const options = {
             select: "*",
             where: {
@@ -328,15 +328,14 @@ class Model {
             },
         };
 
-        const response = await MyModel.getRows(tbl, options);
-
-        console.log("measurements", response);
-
-        if (!response) {
-            throw new HttpException(404, "Projects  not found");
+        const { sql, values } = await MyModel.getRows(tbl, options);
+        const response = await c.env.DB.prepare(sql).bind(...values).all();
+        if (!response.success) {
+            return c.json(new HttpException(404, "Projects  not found!"), 404);
         }
-        const formatted = formatData(response);
-        res.status(200).send(formatted);
+
+        const formatted = formatData(response.results);
+        return c.json(formatted);
     };
 
     getTickets = async (req, res, next) => {
@@ -1363,6 +1362,8 @@ class Model {
             });
             const resultCardListsequence = await c.env.DB.prepare(sql).bind(...values).all();
             const cardListsequence = resultCardListsequence.results;
+
+            console.log("cardListsequence", JSON.stringify(cardListsequence, null, 2))
 
             if (cardListsequence.length === 0) {
                 const { sql, values } = await MyModel.insert("cardListsequence", {
