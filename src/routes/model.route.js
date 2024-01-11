@@ -49,7 +49,7 @@ router.post('/submitBulkActions', awaitHandlerFactory(modelController.submitBulk
 router.post('/submitBulkActionsLeaveOrAbsent', awaitHandlerFactory(modelController.submitBulkActionsLeaveOrAbsent));
 router.post('/addAttendanceData', awaitHandlerFactory(modelController.addAttendanceData)); //converted
 router.post('/addTicket', awaitHandlerFactory(modelController.addTicket));
-router.get('/getTickets/:id', awaitHandlerFactory(modelController.getTickets));converted
+router.get('/getTickets/:id', awaitHandlerFactory(modelController.getTickets));//converted
 router.post('/addCardList', awaitHandlerFactory(modelController.addCardList)); //converted
 router.post('/addCard', awaitHandlerFactory(modelController.addCard));
 router.post('/updateCardListSequence', awaitHandlerFactory(modelController.updateCardListSequence));
