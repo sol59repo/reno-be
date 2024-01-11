@@ -12,7 +12,7 @@ router.post('/getProjects', awaitHandlerFactory(modelController.getProjects)); /
 router.post('/updateStatus', awaitHandlerFactory(modelController.updateStatus)); // converted
 router.post('/updateSpaceStatus', awaitHandlerFactory(modelController.updateSpaceStatus)); //converted
 router.post('/updateAttendanceAvailability', awaitHandlerFactory(modelController.updateAttendanceAvailability));
-router.get('/getMeasurements/:id', awaitHandlerFactory(modelController.getMeasurements));converted
+router.get('/getMeasurements/:id', awaitHandlerFactory(modelController.getMeasurements));//converted
 router.get('/getLocationName/:id', awaitHandlerFactory(modelController.getLocationName)); //converted
 router.get('/getComments/:id', awaitHandlerFactory(modelController.getComments));
 router.get('/getCardActivities/:id', awaitHandlerFactory(modelController.getCardActivities));
