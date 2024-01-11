@@ -338,7 +338,7 @@ class Model {
         return c.json(formatted);
     };
 
-    getTickets = async (req, res, next) => {
+    getTickets = async (c, next) => {
         const id = c.req.param('id')
         const options = {
             select: "*",
