@@ -12,7 +12,7 @@ router.post('/getProjects', awaitHandlerFactory(modelController.getProjects)); /
 router.post('/updateStatus', awaitHandlerFactory(modelController.updateStatus)); // converted
 router.post('/updateSpaceStatus', awaitHandlerFactory(modelController.updateSpaceStatus)); //converted
 router.post('/updateAttendanceAvailability', awaitHandlerFactory(modelController.updateAttendanceAvailability));
-router.get('/getMeasurements/:id', awaitHandlerFactory(modelController.getMeasurements));
+router.get('/getMeasurements/:id', awaitHandlerFactory(modelController.getMeasurements));converted
 router.get('/getLocationName/:id', awaitHandlerFactory(modelController.getLocationName)); //converted
 router.get('/getComments/:id', awaitHandlerFactory(modelController.getComments));
 router.get('/getCardActivities/:id', awaitHandlerFactory(modelController.getCardActivities));
@@ -49,7 +49,7 @@ router.post('/submitBulkActions', awaitHandlerFactory(modelController.submitBulk
 router.post('/submitBulkActionsLeaveOrAbsent', awaitHandlerFactory(modelController.submitBulkActionsLeaveOrAbsent));
 router.post('/addAttendanceData', awaitHandlerFactory(modelController.addAttendanceData)); //converted
 router.post('/addTicket', awaitHandlerFactory(modelController.addTicket));
-router.get('/getTickets/:id', awaitHandlerFactory(modelController.getTickets));
+router.get('/getTickets/:id', awaitHandlerFactory(modelController.getTickets));converted
 router.post('/addCardList', awaitHandlerFactory(modelController.addCardList)); //converted
 router.post('/addCard', awaitHandlerFactory(modelController.addCard));
 router.post('/updateCardListSequence', awaitHandlerFactory(modelController.updateCardListSequence));

@@ -339,7 +339,7 @@ class Model {
     };
 
     getTickets = async (req, res, next) => {
-        const { id } = req.params;
+        const id = c.req.param('id')
         const options = {
             select: "*",
             where: {
@@ -348,15 +348,14 @@ class Model {
             },
         };
 
-        const response = await MyModel.getRows("tickets", options);
-
-        console.log("tickets", response);
-
-        if (!response) {
-            throw new HttpException(404, "Projects  not found");
+        const { sql, values } = await MyModel.getRows("tickets", options);
+        const response = await c.env.DB.prepare(sql).bind(...values).all();
+        if (!response.success) {
+            return c.json(new HttpException(404, "Projects  not found!"), 404);
         }
-        const formatted = formatData(response);
-        res.status(200).send(formatted);
+
+        const formatted = formatData(response.results);
+        return c.json(formatted);
     };
 
     getLocationName = async (c, next) => {
