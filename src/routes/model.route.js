@@ -7,7 +7,7 @@ const modelController = require("../modules/model/controllers/model.controller")
 router.get('/matterportmodels', awaitHandlerFactory(modelController.getMatterportModels)); //converted
 router.post('/addProject', awaitHandlerFactory(modelController.addProject)); //converted
 router.post('/AddToProject', awaitHandlerFactory(modelController.AddToProject)); //converted
-router.post('/saveModelChanges', awaitHandlerFactory(modelController.saveModelChanges));
+router.post('/saveModelChanges', awaitHandlerFactory(modelController.saveModelChanges));//converted
 router.post('/getProjects', awaitHandlerFactory(modelController.getProjects)); //converted
 router.post('/updateStatus', awaitHandlerFactory(modelController.updateStatus)); // converted
 router.post('/updateSpaceStatus', awaitHandlerFactory(modelController.updateSpaceStatus)); //converted

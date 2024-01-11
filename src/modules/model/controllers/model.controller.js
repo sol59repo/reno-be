@@ -317,6 +317,56 @@ class Model {
         return c.json(formatted);
     };
 
+    saveModelChanges = async (c, next) => {
+        const body = await c.req.json();
+        const { measurements, modelId, type, measurementDesc } = body
+        let table = "measurements";
+        if (type === "ticket") {
+            table = "tickets";
+        }
+
+        const { sql: checkExists_sql, values: checkExists_values } = await MyModel.getRows(table, {
+            where: { modelId: modelId },
+        });
+
+        const checkExists = await c.env.DB.prepare(checkExists_sql).bind(...checkExists_values).all();
+
+        if (checkExists.success && checkExists.results.length > 0) {
+            let set = {
+                dateUpdAted: new Date().toISOString(),
+                measurements: JSON.stringify(measurements),
+            };
+            let where = {
+                modelId: modelId,
+            };
+            const { sql, values } = await MyModel.update(table, set, where);
+            const result = await c.env.DB.prepare(sql).bind(...values).run();
+            if (result && !result.success) {
+                return c.json(new HttpException(400, 'Something went wrong'), 400);
+            }
+            const formatted = formatData({
+                "message": "Data updated successfully",
+                "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+            });
+            return c.json(formatted);
+
+        } else {
+            let insertData = {
+                dateAdded: new Date().toISOString(),
+                status: 1,
+                measurements: JSON.stringify(measurements),
+                modelId: modelId,
+            };
+            const { sql: sql2, values: values2 } = await MyModel.insert(table, insertData);
+            const _result = await c.env.DB.prepare(sql2).bind(...values2).run();
+            if (_result.meta.last_row_id == 0) {
+                return c.json(new HttpException(400, `Something went wrong adding ${table}`), 400);
+            }
+            const formatted = formatData({ message: `${table} was created!`, insertId: _result.meta.last_row_id });
+            return c.json(formatted);
+        }
+    };
+
     getMeasurements = async (c, next) => {
         const tbl = this.tblmeasurements;
         const id = c.req.param('id')
@@ -694,61 +744,6 @@ class Model {
         }
         const formatted = formatData(result.results);
         return c.json(formatted);
-    };
-
-    saveModelChanges = async (req, res, next) => {
-        const { measurements, modelId, type, measurementDesc } = req.body;
-        let table = "measurements";
-        if (type === "ticket") {
-            table = "tickets";
-        }
-
-        const checkExists = await MyModel.getRows(table, {
-            where: { modelId: modelId },
-        });
-
-        if (checkExists.length > 0) {
-            let set = {
-                dateUpdAted: new Date(),
-                measurements: JSON.stringify(measurements),
-            };
-            let where = {
-                modelId: modelId,
-            };
-
-            const response = await MyModel.update(table, set, where);
-            const { affectedRows, changedRows, info } = response;
-            const message = !affectedRows
-                ? "Data not found"
-                : affectedRows && changedRows
-                    ? "Data updated successfully"
-                    : affectedRows && !changedRows
-                        ? "Data was found but already up to date"
-                        : "Update failed!";
-
-            const formatted = formatData({ message, info });
-            res.status(200).send(formatted);
-        } else {
-            let insertData = {
-                dateAdded: new Date(),
-                status: 1,
-                measurements: JSON.stringify(measurements),
-                modelId: modelId,
-            };
-
-            const response = await MyModel.insert(table, insertData);
-            if (response === 0) {
-                throw new HttpException(
-                    500,
-                    "Something went wrong adding of model changes"
-                );
-            }
-            const formatted = formatData({
-                message: "Model changes saved!",
-                insertId: response,
-            });
-            res.status(200).send(formatted);
-        }
     };
 
     sendComment = async (req, res, next) => {
