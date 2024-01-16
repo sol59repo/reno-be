@@ -629,7 +629,7 @@ class Model {
             return c.json(new HttpException(404, "project attendance  not found"), 404);
         }
 
-        const formatted = formatData(response);
+        const formatted = formatData(response.results);
         return c.json(formatted);
     };
 
