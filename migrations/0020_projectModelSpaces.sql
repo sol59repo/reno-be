@@ -2,7 +2,7 @@
 CREATE TABLE `projectModelSpaces` (
   `count` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   `spaceId` TEXT(100) NOT NULL,
-  `fkModel` TEXT(150) NOT NULL,
+  `fkModel` INTEGER NOT NULL,
   `status` TEXT(50) NOT NULL,
   `location` TEXT(200) NOT NULL,
   `addedBy` TEXT(50) NOT NULL

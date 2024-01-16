@@ -2,7 +2,7 @@
 CREATE TABLE `cards` (
   `count` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   `id` TEXT(250) NOT NULL,
-  `fkCardList` TEXT(100) NOT NULL,
+  `fkCardList` INTEGER NOT NULL,
   `summary` TEXT(250) NOT NULL,
   `description` longtext,
   `dateAdded` date NOT NULL,

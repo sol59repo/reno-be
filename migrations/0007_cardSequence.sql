@@ -1,7 +1,7 @@
 -- Migration number: 0007 	 2023-10-07T05:01:45.070Z
 CREATE TABLE `cardSequence` (
     `count` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    `fkCardList` TEXT(250) DEFAULT NULL,
+    `fkCardList` INTEGER DEFAULT NULL,
     `sequence` longtext
 );
 

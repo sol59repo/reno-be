@@ -2,7 +2,7 @@
 CREATE TABLE `projectAsignment` (
   `count` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   `fkModel` TEXT(200) NOT NULL,
-  `fkUser` TEXT(200) NOT NULL,
+  `fkUser` INTEGER NOT NULL,
   `status` TEXT(50) NOT NULL,
   `addedBy` TEXT(200) NOT NULL,
   `dateAdded` TEXT(150) DEFAULT NULL

@@ -815,30 +815,33 @@ class Model {
         }
     };
 
-    updateAttendanceAvailability = async (req, res, next) => {
+    updateAttendanceAvailability = async (c, next) => {
+        const body = await c.req.json();
+
+        const {
+            availabilityStatus,
+            count
+        } = body
+
         const set = {
-            availabilityStatus: req.body.availabilityStatus,
+            availabilityStatus: availabilityStatus
         };
         const where = {
-            count: req.body.count,
+            count: count
         };
 
-        const result = await MyModel.update("attendance", set, where);
-        if (!result) {
-            throw new HttpException(404, "Something went wrong");
+        const { sql, values } = await MyModel.update("attendance", set, where);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+        if (result && !result.success) {
+            return c.json(new HttpException(400, 'Something went wrong'), 400);
         }
 
-        const { affectedRows, changedRows, info } = result;
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+        });
 
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        return c.json(formatted);
     };
 
     updateSpaceStatus = async (c, next) => {
@@ -909,8 +912,15 @@ class Model {
         // res.status(200).send(formatted);
     };
 
-    submitAction = async (req, res, next) => {
-        const { status, count, time, hourSpent, timeSpent } = req.body;
+    submitAction = async (c, next) => {
+        const body = await c.req.json();
+        const {
+            status,
+            count,
+            time,
+            hourSpent,
+            timeSpent
+        } = body
 
         const set = {
             status: status,
@@ -924,12 +934,15 @@ class Model {
         }
 
         const where = {
-            count: count,
+            count: parseInt(count),
         };
 
-        const result = await MyModel.update("attendance", set, where);
-        if (!result) {
-            throw new HttpException(404, "Something went wrong");
+        console.log("parseInt(count)", parseInt(count))
+
+        const { sql, values } = await MyModel.update("attendance", set, where);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+        if (result && !result.success) {
+            return c.json(new HttpException(400, 'Something went wrong'), 400);
         }
 
         const insertData = {
@@ -939,20 +952,15 @@ class Model {
             timeSpent: status === "In" ? 0 : timeSpent,
         };
 
-        await MyModel.insert("attendanceLogs", insertData);
 
-        const { affectedRows, changedRows, info } = result;
-        console.log(result);
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
+        const { sql: insert_sql, values: insert_values } = await MyModel.insert("attendanceLogs", insertData);
+        await c.env.DB.prepare(insert_sql).bind(...insert_values).run();
 
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+        });
+        return c.json(formatted);
     };
 
     submitBulkActions = async (req, res, next) => {
@@ -1213,8 +1221,8 @@ class Model {
         return c.json(formatted);
     };
 
-    getSingleAttendanceLogs = async (req, res, next) => {
-        const { id } = req.params;
+    getSingleAttendanceLogs = async (c, next) => {
+        const id = c.req.param('id');
         const options = {
             select: `
               attendanceLogs.*
@@ -1223,12 +1231,15 @@ class Model {
                 "attendanceLogs.fkAttendanceCount": id,
             },
         };
-        const response = await MyModel.getRows("attendanceLogs", options);
-        if (!response) {
-            throw new HttpException(404, "project attendanceLogs  not found");
+
+        const { sql, values } = await MyModel.getRows("attendanceLogs", options);
+        const response = await c.env.DB.prepare(sql).bind(...values).all();
+        if (!response.success) {
+            return c.json(new HttpException(404, "project attendanceLogs  not found"), 404);
         }
-        const formatted = formatData(response);
-        res.status(200).send(formatted);
+
+        const formatted = formatData(response.results);
+        return c.json(formatted);
     };
 
     getEmployeesAttendance = async (c, next) => {

@@ -1,8 +1,8 @@
 -- Migration number: 0018 	 2023-10-07T05:17:51.926Z
 CREATE TABLE `projectConsumables` (
   `count` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  `fkProject` TEXT(120) NOT NULL,
-  `fkConsumables` TEXT(120) NOT NULL,
+  `fkProject` INTEGER NOT NULL,
+  `fkConsumables` INTEGER NOT NULL,
   `dateAdded` TEXT(120) NOT NULL,
   `status` TEXT(120) NOT NULL,
   `addedBy` TEXT(120) NOT NULL,

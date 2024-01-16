@@ -11,7 +11,7 @@ router.post('/saveModelChanges', awaitHandlerFactory(modelController.saveModelCh
 router.post('/getProjects', awaitHandlerFactory(modelController.getProjects)); //converted
 router.post('/updateStatus', awaitHandlerFactory(modelController.updateStatus)); // converted
 router.post('/updateSpaceStatus', awaitHandlerFactory(modelController.updateSpaceStatus)); //converted
-router.post('/updateAttendanceAvailability', awaitHandlerFactory(modelController.updateAttendanceAvailability));
+router.post('/updateAttendanceAvailability', awaitHandlerFactory(modelController.updateAttendanceAvailability));//converted
 router.get('/getMeasurements/:id', awaitHandlerFactory(modelController.getMeasurements));//converted
 router.get('/getLocationName/:id', awaitHandlerFactory(modelController.getLocationName)); //converted
 router.get('/getComments/:id', awaitHandlerFactory(modelController.getComments));
@@ -21,7 +21,7 @@ router.get('/geticketCardMembers/:id', awaitHandlerFactory(modelController.getic
 router.get('/getObjStatus/:id', awaitHandlerFactory(modelController.getObjStatus));
 router.get('/getAsignedStaff/:id', awaitHandlerFactory(modelController.getAsignedStaff)); // converted
 router.get('/getSingleAttendance/:id', awaitHandlerFactory(modelController.getSingleAttendance)); //converted
-router.get('/getSingleAttendanceLogs/:id', awaitHandlerFactory(modelController.getSingleAttendanceLogs));
+router.get('/getSingleAttendanceLogs/:id', awaitHandlerFactory(modelController.getSingleAttendanceLogs));//converted
 router.get('/getAsignedManager/:id', awaitHandlerFactory(modelController.getAsignedManager)); //converted
 router.get('/getAsignedMaterials/:id', awaitHandlerFactory(modelController.getAsignedMaterials)); //converted
 router.get('/getProject/:id', awaitHandlerFactory(modelController.getProject)); //converted
@@ -44,7 +44,7 @@ router.post('/addMaterial', awaitHandlerFactory(modelController.addMaterial));
 router.post('/qtyUpdate', awaitHandlerFactory(modelController.qtyUpdate));//converted
 router.post('/updateAsignmentStatus', awaitHandlerFactory(modelController.updateAsignmentStatus)); //converted
 router.post('/updateAdeddConsumableStatus', awaitHandlerFactory(modelController.updateAdeddConsumableStatus));
-router.post('/submitAction', awaitHandlerFactory(modelController.submitAction));
+router.post('/submitAction', awaitHandlerFactory(modelController.submitAction));//converted
 router.post('/submitBulkActions', awaitHandlerFactory(modelController.submitBulkActions));
 router.post('/submitBulkActionsLeaveOrAbsent', awaitHandlerFactory(modelController.submitBulkActionsLeaveOrAbsent));
 router.post('/addAttendanceData', awaitHandlerFactory(modelController.addAttendanceData)); //converted

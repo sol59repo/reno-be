@@ -1,8 +1,8 @@
 -- Migration number: 0015 	 2023-10-07T05:15:10.080Z
 CREATE TABLE `meetingAttendees` (
   `count` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  `fkMeetingCount` TEXT(100) NOT NULL,
-  `fkUserCount` TEXT(100) NOT NULL,
+  `fkMeetingCount` INTEGER NOT NULL,
+  `fkUserCount`INTEGER NOT NULL,
   `attendStatus` TEXT(100) NOT NULL
 );
 

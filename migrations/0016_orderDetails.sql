@@ -1,8 +1,8 @@
 -- Migration number: 0016 	 2023-10-07T05:15:54.027Z
 CREATE TABLE `orderDetails` (
   `count` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  `fkPo` TEXT(250) NOT NULL,
-  `fkItemCount` TEXT(250) NOT NULL,
+  `fkPo` INTEGER NOT NULL,
+  `fkItemCount` INTEGER NOT NULL,
   `orderQty` INTEGER NOT NULL,
   `status` TEXT(50) NOT NULL
 );

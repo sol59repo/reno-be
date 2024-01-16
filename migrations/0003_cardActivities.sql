@@ -1,7 +1,7 @@
 -- Migration number: 0003 	 2023-10-05T13:59:28.227Z
 CREATE TABLE IF NOT EXISTS cardActivities (
   count INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  fkCard TEXT(100) NOT NULL,
+  fkCard INTEGER NOT NULL,
   content longtext,
   dateTime datetime NOT NULL,
   addedBy TEXT(100) NOT NULL,
