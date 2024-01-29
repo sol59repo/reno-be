@@ -46,7 +46,7 @@ class Consumables {
             return c.json(new HttpException(400, 'Something went wrong adding consumables'), 400);
         }
 
-        const formatted = formatData({ message: 'consumable was created!', insertId: result.meta.last_row_id });
+        const formatted = formatData({ message: 'consumable was created!', insertId: result.meta.last_row_id.toString() });
         return c.json(formatted);
     }
 

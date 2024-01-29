@@ -87,7 +87,7 @@ class Employee {
         }
 
         let empDetails = {
-            fkUsercount: result.meta.last_row_id,
+            fkUsercount: result.meta.last_row_id.toString(),
             firstname: firstname.toUpperCase(),
             lastname: lastname.toUpperCase(),
             birthdate: birthdate,
@@ -103,7 +103,7 @@ class Employee {
             return c.json(new HttpException(400, 'Something went wrong adding users'), 400);
         }
 
-        const formatted = formatData({ message: 'User was created!', insertId: result.meta.last_row_id });
+        const formatted = formatData({ message: 'User was created!', insertId: result.meta.last_row_id.toString() });
         return c.json(formatted);
     }
 

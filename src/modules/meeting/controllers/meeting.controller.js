@@ -223,7 +223,7 @@ class Meeting {
             await c.env.DB.prepare(sql_attendees).bind(...values_attendees).run();
         }
 
-        const formatted = formatData({ message: 'Meeting was created!', insertId: result.meta.last_row_id });
+        const formatted = formatData({ message: 'Meeting was created!', insertId: result.meta.last_row_id.toString() });
         return c.json(formatted);
     }
 
@@ -328,7 +328,7 @@ class Meeting {
         if (!result) {
             throw c.json(new HttpException(500, "Something went wrong adding meeting paticipants to database"));
         }
-        const formatted = formatData({ message: 'Participant was added!', insertId: result.meta.last_row_id, });
+        const formatted = formatData({ message: 'Participant was added!', insertId: result.meta.last_row_id.toString(), });
         return c.json(formatted);
     }
 

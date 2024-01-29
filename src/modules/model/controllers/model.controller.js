@@ -159,7 +159,7 @@ class Model {
 
         const formatted = formatData({
             message: "success!",
-            insertId: result !== 0 ? result.meta.last_row_id : 0,
+            insertId: result !== 0 ? result.meta.last_row_id.toString() : 0,
         });
         return c.json(formatted);
     };
@@ -213,7 +213,7 @@ class Model {
                 return c.json(500, "Something went wrong asigning staff to projects", 500);
             }
         }
-        const formatted = formatData({ message: "success!", insertId: result.meta.last_row_id });
+        const formatted = formatData({ message: "success!", insertId: result.meta.last_row_id.toString() });
         return c.json(formatted);
     };
 
@@ -240,7 +240,7 @@ class Model {
         }
         const formatted = formatData({
             message: "Project was added!",
-            insertId: result.meta.last_row_id,
+            insertId: result.meta.last_row_id.toString(),
         });
         return c.json(formatted);
     };
@@ -265,7 +265,7 @@ class Model {
         }
         const formatted = formatData({
             message: "Project was added!",
-            insertId: result.meta.last_row_id,
+            insertId: result.meta.last_row_id.toString(),
         });
         return c.json(formatted);
     };
@@ -362,7 +362,7 @@ class Model {
             if (_result.meta.last_row_id == 0) {
                 return c.json(new HttpException(400, `Something went wrong adding ${table}`), 400);
             }
-            const formatted = formatData({ message: `${table} was created!`, insertId: _result.meta.last_row_id });
+            const formatted = formatData({ message: `${table} was created!`, insertId: _result.meta.last_row_id.toString() });
             return c.json(formatted);
         }
     };
@@ -934,7 +934,7 @@ class Model {
         }
 
         const where = {
-            count: parseInt(count),
+            count: count,
         };
 
         console.log("parseInt(count)", parseInt(count))
@@ -946,7 +946,7 @@ class Model {
         }
 
         const insertData = {
-            fkAttendanceCount: count,
+            fkAttendanceCount: parseInt(count),
             statusAction: status === "In" ? "Time in" : "Time out",
             time: time,
             timeSpent: status === "In" ? 0 : timeSpent,
@@ -1368,7 +1368,7 @@ class Model {
             const resultCardListsequence = await c.env.DB.prepare(sql).bind(...values).all();
             const cardListsequence = resultCardListsequence.results;
 
-            console.log("cardListsequence", JSON.stringify(cardListsequence, null, 2))
+            // console.log("cardListsequence", JSON.stringify(cardListsequence, null, 2))
 
             if (cardListsequence.length === 0) {
                 const { sql, values } = await MyModel.insert("cardListsequence", {
@@ -1376,6 +1376,7 @@ class Model {
                     cardListSeq: JSON.stringify([id]),
                 });
                 await c.env.DB.prepare(sql).bind(...values).run();
+
             } else {
                 let concat = JSON.parse(cardListsequence[0].cardListSeq);
                 concat.push(id);
@@ -1392,17 +1393,19 @@ class Model {
 
         if (result.success) {
             const cardSequenceData = {
-                fkCardList: result.meta.last_row_id,
+                fkCardList: result.meta.last_row_id.toString(),
                 sequence: JSON.stringify([]),
             };
 
             const { sql, values } = await MyModel.insert("cardSequence", cardSequenceData);
             await c.env.DB.prepare(sql).bind(...values).run();
+
+            return c.json(cardSequenceData);
         }
 
         const formatted = formatData({
             message: "Project was added!",
-            insertId: result.meta.last_row_id,
+            insertId: result.meta.last_row_id.toString(),
         });
         return c.json(formatted);
     };
@@ -1944,7 +1947,7 @@ class Model {
 
             if (resultUpdateConsumables.success) {
                 const itemData = {
-                    fkPo: result.meta.last_row_id,
+                    fkPo: result.meta.last_row_id.toString(),
                     fkItemCount: Items[i].count,
                     orderQty: Items[i].orderQty,
                     status: "For Approval",
@@ -1958,7 +1961,7 @@ class Model {
         const logData = {
             ID: shortid.generate(),
             fkModel: modelId,
-            refId: result.meta.last_row_id,
+            refId: result.meta.last_row_id.toString(),
             description: "New Order added.",
             dateTime: new Date().toDateString(),
             addedBy: addedBy,
@@ -1970,12 +1973,12 @@ class Model {
             await c.env.DB.prepare(sql).bind(...values).run();
         }
 
-        if (result.meta.last_row_id === 0) {
+        if (result.meta.last_row_id.toString() == 0) {
             return c.json(new HttpException(404, "Something went wrong adding of projects"), 404);
         }
         const formatted = formatData({
             message: "Project was added!",
-            insertId: result.meta.last_row_id,
+            insertId: result.meta.last_row_id.toString(),
         });
         return c.json(formatted);
     };

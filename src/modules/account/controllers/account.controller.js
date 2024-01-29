@@ -37,7 +37,7 @@ class Account {
             throw new HttpException(500, 'Something went wrong adding users');
         } else {
             let usersDetailsData = {
-                fkUsercount: Math.trunc(resulInsertedUser.meta.last_row_id),
+                fkUsercount: Math.trunc(resulInsertedUser.meta.last_row_id.toString()),
                 firstname: data.first_name,
                 lastname: data.last_name,
                 email: data.email,
