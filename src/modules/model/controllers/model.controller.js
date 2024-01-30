@@ -428,8 +428,8 @@ class Model {
         return c.json(formatted);
     };
 
-    getObjStatus = async (req, res, next) => {
-        const { id } = req.params;
+    getObjStatus = async (c, next) => {
+        const id = c.req.param('id')
         const options = {
             select: "status",
             where: {
@@ -437,17 +437,17 @@ class Model {
             },
         };
 
-        const response = await MyModel.getRows("comments", options);
-        if (!response) {
-            throw new HttpException(404, "Projects  not found");
+        const { sql, values } = await MyModel.getRows("comments", options);
+        const result = await c.env.DB.prepare(sql).bind(...values).all();
+        if (!result.success) {
+            throw c.json(new HttpException(404, 'Projects  not found'), 404);
         }
-
-        const formatted = formatData(response);
-        res.status(200).send(formatted);
+        const formatted = formatData(result.results);
+        return c.json(formatted);
     };
 
-    getcommentsMembers = async (req, res, next) => {
-        const { id } = req.params;
+    getcommentsMembers = async (c, next) => {
+        const id = c.req.param('id')
         const options = {
             select: `
         userdetails.avatar as Avatar,
@@ -462,13 +462,13 @@ class Model {
             },
         };
 
-        const response = await MyModel.getRows("commentsMembers", options);
-        if (!response) {
-            throw new HttpException(404, "Projects  not found");
+        const { sql, values } = await MyModel.getRows("commentsMembers", options);
+        const result = await c.env.DB.prepare(sql).bind(...values).all();
+        if (!result.success) {
+            throw c.json(new HttpException(404, 'Projects  not found'), 404);
         }
-
-        const formatted = formatData(response);
-        res.status(200).send(formatted);
+        const formatted = formatData(result.results);
+        return c.json(formatted);
     };
 
     getAsignedManager = async (c, next) => {
@@ -633,8 +633,8 @@ class Model {
         return c.json(formatted);
     };
 
-    getComments = async (req, res, next) => {
-        const { id } = req.params;
+    getComments = async (c, next) => {
+        const id = c.req.param('id')
         const options = {
             select: `
         CONCAT(userdetails.firstname,' ', userdetails.lastname) empName,
@@ -651,13 +651,14 @@ class Model {
             order: "count DESC",
         };
 
-        const response = await MyModel.getRows("commentConvo", options);
-        if (!response) {
-            throw new HttpException(404, "Projects  not found");
-        }
 
-        const formatted = formatData(response);
-        res.status(200).send(formatted);
+        const { sql, values } = await MyModel.getRows("commentConvo", options);
+        const result = await c.env.DB.prepare(sql).bind(...values).all();
+        if (!result.success) {
+            throw c.json(new HttpException(404, 'Projects  not found'), 404);
+        }
+        const formatted = formatData(result.results);
+        return c.json(formatted);
     };
 
     getAllMaterials = async (c, next) => {
@@ -1411,39 +1412,52 @@ class Model {
         return c.json(formatted);
     };
 
-    addCard = async (req, res, next) => {
-        const { fkCardList, summary, addedBy, id, cardSequence, modelId } =
-            req.body;
+    addCard = async (c, next) => {
+        const body = await c.req.json();
+        const {
+            fkCardList,
+            summary,
+            addedBy,
+            id,
+            cardSequence,
+            modelId
+        } = body;
 
         const cardData = {
-            fkCardList: fkCardList,
+            fkCardList: fkCardList.toString(),
             summary: summary,
             addedBy: addedBy,
             status: JSON.stringify([]),
-            dateAdded: new Date(),
+            dateAdded: new Date().toISOString(),
             id: id,
         };
 
-        const result = await MyModel.insert("cards", cardData);
-        if (result === 0) {
-            throw new HttpException(500, "Something went wrong adding of projects");
+
+        const { sql, values } = await MyModel.insert("cards", cardData);
+
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+        if (result && result.meta.last_row_id == 0) {
+            return c.json(new HttpException(400, "Something went wrong adding of projects"), 400);
         }
 
-        await MyModel.update(
-            "cardSequence",
+        const {
+            sql: sql_update,
+            values: values_update
+        } = await MyModel.update("cardSequence",
             {
                 sequence: cardSequence,
             },
             {
-                fkCardList: fkCardList,
-            }
-        );
+                fkCardList: fkCardList.toString(),
+            });
+
+        await c.env.DB.prepare(sql_update).bind(...values_update).run();
 
         const formatted = formatData({
             message: "Project was added!",
             insertId: result,
         });
-        res.status(200).send(formatted);
+        return c.json(formatted);
     };
 
     getCardLists = async (c, next) => {
@@ -1466,7 +1480,7 @@ class Model {
             const option2 = {
                 select: `cards.*`,
                 where: {
-                    "cards.fkCardList": response[i].count,
+                    "cards.fkCardList": response[i].count.toString(),
                     "cards.archivedStatus !=": 1,
                 },
             }
@@ -1479,7 +1493,7 @@ class Model {
                 const option3 = {
                     select: `cardSequence.*`,
                     where: {
-                        "cardSequence.fkCardList": response[i].count,
+                        "cardSequence.fkCardList": response[i].count.toString(),
                     },
                 }
 
@@ -1522,7 +1536,7 @@ class Model {
         const set = {
             status: "Archived",
         };
-        
+
         const where = {
             count: count,
         };
@@ -1570,7 +1584,7 @@ class Model {
                 sequence: JSON.stringify(filterNewSeq),
             },
             {
-                fkCardList: fkCardList,
+                fkCardList: fkCardList.toString(),
             }
         );
 
@@ -1590,7 +1604,7 @@ class Model {
 
     updateCard = async (req, res, next) => {
         const set = {
-            fkCardList: req.body.fkCardList,
+            fkCardList: req.body.fkCardList.toString(),
         };
         const where = {
             id: req.body.id,
@@ -1615,61 +1629,53 @@ class Model {
         res.status(200).send(formatted);
     };
 
-    updateCardInfo = async (req, res, next) => {
-        console.log(req.body);
-
+    updateCardInfo = async (c, next) => {
+        const body = await c.req.json();
         const set = {
-            summary: req.body.summary,
-            description: req.body.description,
+            summary: body.summary,
+            description: body.description,
         };
         const where = {
-            count: req.body.count,
+            count: body.count,
         };
 
-        const result = await MyModel.update("cards", set, where);
-        if (!result) {
-            throw new HttpException(404, "Something went wrong");
+        const { sql, values } = await MyModel.update('cards', set, where);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+
+        if (result && !result.success) {
+            return c.json(new HttpException(400, 'Something went wrong'), 400);
         }
 
-        const { affectedRows, changedRows, info } = result;
-        console.log(result);
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+        });
 
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        return c.json(formatted);
     };
 
-    updateCardListSequence = async (req, res, next) => {
+    updateCardListSequence = async (c, nex) => {
+        const body = await c.req.json();
         const set = {
-            cardListSeq: JSON.stringify(req.body.cardListSeq),
+            cardListSeq: JSON.stringify(body.cardListSeq),
         };
         const where = {
-            modelId: req.body.modelId,
+            modelId: body.modelId,
         };
 
-        const result = await MyModel.update("cardListsequence", set, where);
-        if (!result) {
-            throw new HttpException(404, "Something went wrong");
+        const { sql, values } = await MyModel.update('cardListsequence', set, where);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+
+        if (result && !result.success) {
+            return c.json(new HttpException(400, 'Something went wrong'), 400);
         }
 
-        const { affectedRows, changedRows, info } = result;
-        console.log(result);
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+        });
 
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        return c.json(formatted);
     };
 
     updateCardInListSequence = async (req, res, next) => {
@@ -1677,7 +1683,7 @@ class Model {
             sequence: req.body.sequence,
         };
         const where = {
-            fkCardList: req.body.fkCardList,
+            fkCardList: req.body.fkCardList.toString(),
         };
 
         const result = await MyModel.update("cardSequence", set, where);
@@ -1724,34 +1730,31 @@ class Model {
         return c.json(formatted);
     };
 
-    sendTicketCardComment = async (req, res, next) => {
-        const { fkCard, content, dateTime, addedBy } = req.body;
+    sendTicketCardComment = async (c, next) => {
+        const body = await c.req.json();
+        const { fkCard, content, dateTime, addedBy } = body;
 
         let insertData = {
             fkCard: fkCard,
             content: content,
-            dateTime: new Date(),
+            dateTime: new Date().toISOString(),
             addedBy: addedBy,
             type: "comment",
         };
 
-        const response = await MyModel.insert("cardActivities", insertData);
-        if (response === 0) {
-            throw new HttpException(
-                500,
-                "Something went wrong adding of model changes"
-            );
+        const { sql, values } = await MyModel.insert('cardActivities', insertData);
+
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+        if (result && result.meta.last_row_id == 0) {
+            return c.json(new HttpException(400,    "Something went wrong adding of model changes"), 400);
         }
 
-        const formatted = formatData({
-            message: "Model changes saved!",
-            insertId: response,
-        });
-        res.status(200).send(formatted);
+        const formatted = formatData({ message: "Model changes saved!", insertId: result.meta.last_row_id.toString() });
+        return c.json(formatted);
     };
 
-    getCardActivities = async (req, res, next) => {
-        const { id } = req.params;
+    getCardActivities = async (c, next) => {
+        const id = c.req.param('id')
         const options = {
             select: `
         CONCAT(userdetails.firstname,' ', userdetails.lastname) empName,
@@ -1768,13 +1771,14 @@ class Model {
             order: "count DESC",
         };
 
-        const response = await MyModel.getRows("cardActivities", options);
-        if (!response) {
-            throw new HttpException(404, "Projects  not found");
-        }
 
-        const formatted = formatData(response);
-        res.status(200).send(formatted);
+        const { sql, values } = await MyModel.getRows("cardActivities", options);
+        const result = await c.env.DB.prepare(sql).bind(...values).all();
+        if (!result.success) {
+            throw c.json(new HttpException(404, 'Projects  not found'), 404);
+        }
+        const formatted = formatData(result.results);
+        return c.json(formatted);
     };
 
     sendTicketCardStatus = async (req, res, next) => {
@@ -1850,8 +1854,8 @@ class Model {
         }
     };
 
-    geticketCardMembers = async (req, res, next) => {
-        const { id } = req.params;
+    geticketCardMembers = async (c, next) => {
+        const id = c.req.param('id')
         const options = {
             select: "*",
             where: {
@@ -1860,13 +1864,13 @@ class Model {
             },
         };
 
-        const response = await MyModel.getRows("ticketCardMembers", options);
-        if (!response) {
-            throw new HttpException(404, "Projects  not found");
+        const { sql, values } = await MyModel.getRows("ticketCardMembers", options);
+        const result = await c.env.DB.prepare(sql).bind(...values).all();
+        if (!result.success) {
+            throw c.json(new HttpException(404, 'Projects  not found'), 404);
         }
-
-        const formatted = formatData(response);
-        res.status(200).send(formatted);
+        const formatted = formatData(result.results);
+        return c.json(formatted);
     };
 
     addPO = async (c, next) => {

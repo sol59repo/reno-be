@@ -14,11 +14,11 @@ router.post('/updateSpaceStatus', awaitHandlerFactory(modelController.updateSpac
 router.post('/updateAttendanceAvailability', awaitHandlerFactory(modelController.updateAttendanceAvailability));//converted
 router.get('/getMeasurements/:id', awaitHandlerFactory(modelController.getMeasurements));//converted
 router.get('/getLocationName/:id', awaitHandlerFactory(modelController.getLocationName)); //converted
-router.get('/getComments/:id', awaitHandlerFactory(modelController.getComments));
-router.get('/getCardActivities/:id', awaitHandlerFactory(modelController.getCardActivities));
-router.get('/getcommentsMembers/:id', awaitHandlerFactory(modelController.getcommentsMembers));
-router.get('/geticketCardMembers/:id', awaitHandlerFactory(modelController.geticketCardMembers));
-router.get('/getObjStatus/:id', awaitHandlerFactory(modelController.getObjStatus));
+router.get('/getComments/:id', awaitHandlerFactory(modelController.getComments)); //converted
+router.get('/getCardActivities/:id', awaitHandlerFactory(modelController.getCardActivities)); //converted
+router.get('/getcommentsMembers/:id', awaitHandlerFactory(modelController.getcommentsMembers)); //converted
+router.get('/geticketCardMembers/:id', awaitHandlerFactory(modelController.geticketCardMembers));// converted
+router.get('/getObjStatus/:id', awaitHandlerFactory(modelController.getObjStatus));// converted
 router.get('/getAsignedStaff/:id', awaitHandlerFactory(modelController.getAsignedStaff)); // converted
 router.get('/getSingleAttendance/:id', awaitHandlerFactory(modelController.getSingleAttendance)); //converted
 router.get('/getSingleAttendanceLogs/:id', awaitHandlerFactory(modelController.getSingleAttendanceLogs));//converted
@@ -33,7 +33,7 @@ router.post('/getEmployeeAttendance', awaitHandlerFactory(modelController.getEmp
 router.get('/getAllManagers', awaitHandlerFactory(modelController.getAllManagers)); //converted
 router.get('/getAllMaterials', awaitHandlerFactory(modelController.getAllMaterials)); //converted
 router.post('/sendComment', awaitHandlerFactory(modelController.sendComment));
-router.post('/sendTicketCardComment', awaitHandlerFactory(modelController.sendTicketCardComment));
+router.post('/sendTicketCardComment', awaitHandlerFactory(modelController.sendTicketCardComment));//converted
 router.post('/sendStatus', awaitHandlerFactory(modelController.sendStatus));
 router.post('/sendTicketCardStatus', awaitHandlerFactory(modelController.sendTicketCardStatus));
 router.post('/sendMembers', awaitHandlerFactory(modelController.sendMembers));
@@ -52,10 +52,10 @@ router.post('/addTicket', awaitHandlerFactory(modelController.addTicket));
 router.get('/getTickets/:id', awaitHandlerFactory(modelController.getTickets));//converted
 router.post('/addCardList', awaitHandlerFactory(modelController.addCardList)); //converted
 router.post('/addCard', awaitHandlerFactory(modelController.addCard));
-router.post('/updateCardListSequence', awaitHandlerFactory(modelController.updateCardListSequence));
+router.post('/updateCardListSequence', awaitHandlerFactory(modelController.updateCardListSequence)); //converted
 router.post('/updateCardInListSequence', awaitHandlerFactory(modelController.updateCardInListSequence));
 router.post('/updateCard', awaitHandlerFactory(modelController.updateCard));
-router.post('/updateCardInfo', awaitHandlerFactory(modelController.updateCardInfo));
+router.post('/updateCardInfo', awaitHandlerFactory(modelController.updateCardInfo));//converted
 router.post('/renameList', awaitHandlerFactory(modelController.renameList));
 router.get('/getCardLists/:id', awaitHandlerFactory(modelController.getCardLists)); //converted
 router.get('/getSequence/:id', awaitHandlerFactory(modelController.getSequence)); // converted
