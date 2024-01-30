@@ -1515,43 +1515,38 @@ class Model {
         return c.json(formatted);
     };
 
-    archiveList = async (req, res, next) => {
-        const { count, modelId, newCrdListSeq } = req.body;
+    archiveList = async (c, next) => {
+        const body = await c.req.json();
+        const { count, modelId, newCrdListSeq } = body;
 
         const set = {
             status: "Archived",
         };
+        
         const where = {
             count: count,
         };
 
-        const result = await MyModel.update("cardLists", set, where);
-        if (!result) {
-            throw new HttpException(404, "Something went wrong");
+        const { sql, values } = await MyModel.update("cardLists", set, where);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+
+        if (result && !result.success) {
+            return c.json(new HttpException(400, 'Something went wrong'), 400);
         }
 
-        await MyModel.update(
-            "cardListsequence",
-            {
-                cardListSeq: JSON.stringify(newCrdListSeq),
-            },
+        const { sql: _SQL, values: _VALUES } = await MyModel.update("cardListsequence", {
+            cardListSeq: JSON.stringify(newCrdListSeq),
+        },
             {
                 modelId: modelId,
-            }
-        );
+            });
 
-        const { affectedRows, changedRows, info } = result;
-        console.log(result);
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
-
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        await c.env.DB.prepare(_SQL).bind(..._VALUES).run();
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+        });
+        return c.json(formatted);
     };
 
     archiveCard = async (req, res, next) => {
@@ -1704,31 +1699,29 @@ class Model {
         res.status(200).send(formatted);
     };
 
-    renameList = async (req, res, next) => {
+    renameList = async (c, next) => {
+        const body = await c.req.json();
+
         const set = {
-            name: req.body.name,
-        };
-        const where = {
-            count: req.body.count,
+            name: body.name,
         };
 
-        const result = await MyModel.update("cardLists", set, where);
-        if (!result) {
-            throw new HttpException(404, "Something went wrong");
+        const where = {
+            count: body.count,
+        };
+
+        const { sql, values } = await MyModel.update("cardLists", set, where);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+
+        if (result && !result.success) {
+            return c.json(new HttpException(400, 'Something went wrong'), 400);
         }
 
-        const { affectedRows, changedRows, info } = result;
-        console.log(result);
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
-
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+        });
+        return c.json(formatted);
     };
 
     sendTicketCardComment = async (req, res, next) => {
