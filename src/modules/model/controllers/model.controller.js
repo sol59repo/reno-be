@@ -1378,9 +1378,10 @@ class Model {
                 await c.env.DB.prepare(sql).bind(...values).run();
 
             } else {
-                let concat = JSON.parse(cardListsequence[0].cardListSeq);
+                let jsonString = cardListsequence[0].cardListSeq;
+                jsonString = jsonString.replace(/\\"/g, '"');
+                let concat = JSON.parse(jsonString);
                 concat.push(id);
-
                 const { sql, values } = await MyModel.update("cardListsequence", {
                     cardListSeq: JSON.stringify(concat),
                 }, {
