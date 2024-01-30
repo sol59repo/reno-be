@@ -946,7 +946,7 @@ class Model {
         }
 
         const insertData = {
-            fkAttendanceCount: parseInt(count),
+            fkAttendanceCount: count.toString(),
             statusAction: status === "In" ? "Time in" : "Time out",
             time: time,
             timeSpent: status === "In" ? 0 : timeSpent,
