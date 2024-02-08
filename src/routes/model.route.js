@@ -48,15 +48,15 @@ router.post('/submitAction', awaitHandlerFactory(modelController.submitAction));
 router.post('/submitBulkActions', awaitHandlerFactory(modelController.submitBulkActions));
 router.post('/submitBulkActionsLeaveOrAbsent', awaitHandlerFactory(modelController.submitBulkActionsLeaveOrAbsent));
 router.post('/addAttendanceData', awaitHandlerFactory(modelController.addAttendanceData)); //converted
-router.post('/addTicket', awaitHandlerFactory(modelController.addTicket));
+router.post('/addTicket', awaitHandlerFactory(modelController.addTicket));//converted
 router.get('/getTickets/:id', awaitHandlerFactory(modelController.getTickets));//converted
 router.post('/addCardList', awaitHandlerFactory(modelController.addCardList)); //converted
-router.post('/addCard', awaitHandlerFactory(modelController.addCard));
+router.post('/addCard', awaitHandlerFactory(modelController.addCard));//converted
 router.post('/updateCardListSequence', awaitHandlerFactory(modelController.updateCardListSequence)); //converted
-router.post('/updateCardInListSequence', awaitHandlerFactory(modelController.updateCardInListSequence));
-router.post('/updateCard', awaitHandlerFactory(modelController.updateCard));
+router.post('/updateCardInListSequence', awaitHandlerFactory(modelController.updateCardInListSequence)); //converted
+router.post('/updateCard', awaitHandlerFactory(modelController.updateCard));//converted
 router.post('/updateCardInfo', awaitHandlerFactory(modelController.updateCardInfo));//converted
-router.post('/renameList', awaitHandlerFactory(modelController.renameList));
+router.post('/renameList', awaitHandlerFactory(modelController.renameList));//converted
 router.get('/getCardLists/:id', awaitHandlerFactory(modelController.getCardLists)); //converted
 router.get('/getSequence/:id', awaitHandlerFactory(modelController.getSequence)); // converted
 router.get('/getPoDetails/:id', awaitHandlerFactory(modelController.getPoDetails)); //converted
@@ -65,11 +65,11 @@ router.post('/getSpaces', awaitHandlerFactory(modelController.getSpaces)); //con
 router.post('/gePO', awaitHandlerFactory(modelController.gePO)); //converted
 router.post('/addPO', awaitHandlerFactory(modelController.addPO)); //converted
 router.post('/acknowledgeOrders', awaitHandlerFactory(modelController.acknowledgeOrders)); //converted
-router.post('/archiveList', awaitHandlerFactory(modelController.archiveList));
-router.post('/archiveCard', awaitHandlerFactory(modelController.archiveCard));
+router.post('/archiveList', awaitHandlerFactory(modelController.archiveList));//converted
+router.post('/archiveCard', awaitHandlerFactory(modelController.archiveCard));//converted
 router.post('/deleteAttachment', awaitHandlerFactory(modelController.deleteAttachment));
-router.post('/updateComment', awaitHandlerFactory(modelController.updateComment));
-router.post('/deleteComment', awaitHandlerFactory(modelController.deleteComment));
-router.post('/updateTicketComment', awaitHandlerFactory(modelController.updateTicketComment));
-router.post('/deleteTicketComment', awaitHandlerFactory(modelController.deleteTicketComment));
+router.post('/updateComment', awaitHandlerFactory(modelController.updateComment));//converted
+router.post('/deleteComment', awaitHandlerFactory(modelController.deleteComment));//converted
+router.post('/updateTicketComment', awaitHandlerFactory(modelController.updateTicketComment));//converted
+router.post('/deleteTicketComment', awaitHandlerFactory(modelController.deleteTicketComment));//converted
 module.exports = router;
