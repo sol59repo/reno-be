@@ -747,7 +747,7 @@ class Model {
         return c.json(formatted);
     };
 
-    sendComment = async (req, res, next) => {
+    sendComment = async (c, next) => {
         const { dateAdded, comment, addedBy, refId } = req.body;
 
         let insertData = {
@@ -1484,9 +1484,8 @@ class Model {
                     "cards.archivedStatus !=": 1,
                 },
             }
-
-            const { sql, values } = await MyModel.getRows("cards", option2);
-            const resultCards = await c.env.DB.prepare(sql).bind(...values).all();
+            const { sql: sql_cards, values: values_cards } = await MyModel.getRows("cards", option2);
+            const resultCards = await c.env.DB.prepare(sql_cards).bind(...values_cards).all();
             response[i].cardLists = resultCards.results;
 
             if (resultCards.success) {
@@ -1496,9 +1495,8 @@ class Model {
                         "cardSequence.fkCardList": response[i].count.toString(),
                     },
                 }
-
-                const { sql, values } = await MyModel.getRows("cardSequence", option3);
-                const resultCardSequence = await c.env.DB.prepare(sql).bind(...values).all();
+                const { sql: sql_cardSequence, values: values_cardSequence } = await MyModel.getRows("cardSequence", option3);
+                const resultCardSequence = await c.env.DB.prepare(sql_cardSequence).bind(...values_cardSequence).all();
                 response[i].cardSequence = resultCardSequence.results
             }
         }
