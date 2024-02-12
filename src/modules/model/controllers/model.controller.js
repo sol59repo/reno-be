@@ -964,10 +964,9 @@ class Model {
         return c.json(formatted);
     };
 
-    submitBulkActions = async (req, res, next) => {
-        const { data, availabilityStatus } = req.body;
-
-        console.log(data);
+    submitBulkActions = async (c, next) => {
+        const body = await c.req.json();
+        const { data, availabilityStatus } = body;
 
         let result;
         for (let i = 0; i < data.length; i++) {
@@ -983,57 +982,44 @@ class Model {
                 set.hourSpent = hourSpent;
             }
 
-            result = await MyModel.update("attendance", set, { count: count });
-
+            const { sql, values } = await MyModel.update("attendance", set, { count: count.toString() });
+            result = await c.env.DB.prepare(sql).bind(...values).run();
             const insertData = {
-                fkAttendanceCount: count,
+                fkAttendanceCount: count.toString(),
                 statusAction: status === "In" ? "Time in" : "Time out",
                 time: time,
                 timeSpent: status === "In" ? 0 : timeSpent,
             };
-
-            await MyModel.insert("attendanceLogs", insertData);
+            const { sql: sql_attendanceLogs, values: values_attendanceLogs } = await MyModel.insert("attendanceLogs", insertData);
+            await c.env.DB.prepare(sql_attendanceLogs).bind(...values_attendanceLogs).run();
         }
 
-        console.log(result);
-
-        const { affectedRows, changedRows, info } = result;
-
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
-
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+        });
+        return c.json(formatted);
     };
 
-    submitBulkActionsLeaveOrAbsent = async (req, res, next) => {
-        const { data } = req.body;
+    submitBulkActionsLeaveOrAbsent = async (c, next) => {
+        const body = await c.req.json();
+        const { data } = body;
         let result;
         for (let i = 0; i < data.length; i++) {
             const { status, count } = data[i];
             const set = {
                 availabilityStatus: status,
             };
-            result = await MyModel.update("attendance", set, { count: count });
+
+            const { sql, values } = await MyModel.update("attendance", set, { count: count.toString() });
+            result = await c.env.DB.prepare(sql).bind(...values).run();
         }
 
-        const { affectedRows, changedRows, info } = result;
-
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
-
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+        });
+        return c.json(formatted);
     };
 
     updateAdeddConsumableStatus = async (req, res, next) => {
@@ -1207,15 +1193,15 @@ class Model {
         }
 
         var i;
-        for (i = 0; i < response.length; i++) {
-            const { sql, values } = await MyModel.getRows("attendanceLogs", {
+        for (i = 0; i < response.results.length; i++) {
+            const { sql: sql_attendanceLogs, values: values_attendanceLogs } = await MyModel.getRows("attendanceLogs", {
                 select: "attendanceLogs.*",
                 where: {
-                    "attendanceLogs.fkAttendanceCount": response[i].count,
+                    "attendanceLogs.fkAttendanceCount": response.results[i].count,
                 },
             });
-            const attendanceLogs = await c.env.DB.prepare(sql).bind(...values).all();
-            response[i].attendanceLogs = attendanceLogs.results;
+            const attendanceLogs = await c.env.DB.prepare(sql_attendanceLogs).bind(...values_attendanceLogs).all();
+            response.results[i].attendanceLogs = attendanceLogs.results;
         }
 
         const formatted = formatData(response.results);
@@ -1317,7 +1303,7 @@ class Model {
             throw c.json(new HttpException(404, 'attendance  not found'));
         }
 
-        const formatted = formatData(response);
+        const formatted = formatData(response.results);
         return c.json(formatted);
     };
 

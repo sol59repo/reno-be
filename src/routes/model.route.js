@@ -45,8 +45,8 @@ router.post('/qtyUpdate', awaitHandlerFactory(modelController.qtyUpdate));//conv
 router.post('/updateAsignmentStatus', awaitHandlerFactory(modelController.updateAsignmentStatus)); //converted
 router.post('/updateAdeddConsumableStatus', awaitHandlerFactory(modelController.updateAdeddConsumableStatus));
 router.post('/submitAction', awaitHandlerFactory(modelController.submitAction));//converted
-router.post('/submitBulkActions', awaitHandlerFactory(modelController.submitBulkActions));
-router.post('/submitBulkActionsLeaveOrAbsent', awaitHandlerFactory(modelController.submitBulkActionsLeaveOrAbsent));
+router.post('/submitBulkActions', awaitHandlerFactory(modelController.submitBulkActions));//converted
+router.post('/submitBulkActionsLeaveOrAbsent', awaitHandlerFactory(modelController.submitBulkActionsLeaveOrAbsent));//converted
 router.post('/addAttendanceData', awaitHandlerFactory(modelController.addAttendanceData)); //converted
 router.post('/addTicket', awaitHandlerFactory(modelController.addTicket));//converted
 router.get('/getTickets/:id', awaitHandlerFactory(modelController.getTickets));//converted
