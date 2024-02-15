@@ -164,31 +164,35 @@ class Model {
         return c.json(formatted);
     };
 
-    addMaterial = async (req, res, next) => {
-        const { materials, fkProject, addedBy } = req.body;
+    addMaterial = async (c, next) => {
+        const body = await c.req.json();
+        const { materials, fkProject, addedBy } = body;
 
         let result = 0;
         var i;
         for (i = 0; i < materials.length; i++) {
             const insertData = {
-                fkProject: fkProject,
+                fkProject: fkProject.toString(),
                 dateAdded: new Date().getTime(),
                 status: "Out-of-Stock",
                 qty: 0,
-                fkConsumables: materials[i].count,
+                fkConsumables: materials[i].count.toString(),
                 addedBy: addedBy,
             };
-            result = await MyModel.insert("projectConsumables", insertData);
+            // result = await MyModel.insert("projectConsumables", insertData);
 
-            if (result === 0) {
+            const { sql, values } = await MyModel.insert('projectConsumables', insertData);
+            result = await c.env.DB.prepare(sql).bind(...values).run();
+
+            if (!result.success) {
                 throw new HttpException(
                     500,
                     "Something went wrong adding of material to projects"
                 );
             }
         }
-        const formatted = formatData({ message: "success!", insertId: result });
-        res.status(200).send(formatted);
+        const formatted = formatData({ message: "success!", insertId: result.meta.last_row_id.toString() });
+        return c.json(formatted);
     };
 
     asignStaff = async (c, next) => {
@@ -782,37 +786,38 @@ class Model {
         res.status(200).send(formatted);
     };
 
-    initComments = async (req, res, next) => {
-        const { refId } = req.body;
-        const checkExists = await MyModel.getRows("comments", {
-            where: { refId: refId },
-        });
+    initComments = async (c, next) => {
+        const body = await c.req.json();
 
-        if (checkExists.length === 0) {
+        const { refId } = body;
+
+        const { sql, values } = await MyModel.getRows("comments", { where: { refId: refId } });
+        const checkExists = await c.env.DB.prepare(sql).bind(...values).all();
+
+        if (checkExists.results.length === 0) {
             let insertData = {
                 refId: refId,
                 status: JSON.stringify([]),
             };
 
-            const response = await MyModel.insert("comments", insertData);
-            if (response === 0) {
-                throw new HttpException(
-                    500,
-                    "Something went wrong adding of initComments"
-                );
+            const { sql: sql2, values: values2 } = await MyModel.insert("comments", insertData);
+            const response = await c.env.DB.prepare(sql2).bind(...values2).all();
+
+            if (!response.success) {
+                return c.json(500, "Something went wrong adding of projects", 500);
             }
 
             const formatted = formatData({
                 message: "initComments  saved!",
-                insertId: response,
+                insertId: response.meta.last_row_id.toString(),
             });
-            res.status(200).send(formatted);
+            return c.json(formatted);
         } else {
             const formatted = formatData({
                 message: "initComments already existed!",
                 insertId: 0,
             });
-            res.status(200).send(formatted);
+            return c.json(formatted);
         }
     };
 
@@ -1022,33 +1027,28 @@ class Model {
         return c.json(formatted);
     };
 
-    updateAdeddConsumableStatus = async (req, res, next) => {
+    updateAdeddConsumableStatus = async (c, next) => {
+        const body = await c.req.json();
         const set = {
-            status: req.body.status,
+            status: body.status,
         };
         const where = {
-            count: req.body.count,
+            count: body.count.toString(),
         };
 
-        const result = await MyModel.update("projectConsumables", set, where);
-        if (!result) {
-            throw new HttpException(404, "Something went wrong");
+        const { sql, values } = await MyModel.update("projectConsumables", set, where);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+
+        if (result && !result.success) {
+            return c.json(new HttpException(400, 'Something went wrong'), 400);
         }
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+        });
 
-        const { affectedRows, changedRows, info } = result;
-        console.log(result);
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
-
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        return c.json(formatted);
     };
-
     updateAsignmentStatus = async (c, next) => {
         const body = await c.req.json();
         const set = {
@@ -1094,60 +1094,57 @@ class Model {
 
     };
 
-    sendStatus = async (req, res, next) => {
+    sendStatus = async (c, next) => {
+        const body = await c.req.json();
         const set = {
-            status: JSON.stringify(req.body.objStatus),
+            status: JSON.stringify(body.objStatus),
         };
         const where = {
-            refId: req.body.refId,
+            refId: body.refId,
         };
 
-        const result = await MyModel.update("comments", set, where);
-        if (!result) {
-            throw new HttpException(404, "Something went wrong");
+        const { sql, values } = await MyModel.update("comments", set, where);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+
+        if (!result.success) {
+            return c.json(new HttpException(404, "Something went wrong"), 404);
         }
 
-        const { affectedRows, changedRows, info } = result;
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+        });
 
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        return c.json(formatted);
     };
 
-    sendMembers = async (req, res, next) => {
-        const { cardMembers, refId, type } = req.body;
-
-        console.log(req.body);
+    sendMembers = async (c, next) => {
+        const body = await c.req.json();
+        const { cardMembers, refId, type } = body;
 
         const where = {
             refId: refId,
             userID: cardMembers.ID,
         };
 
-        const checkExists = await MyModel.getRows("commentsMembers", {
-            where: where,
-        });
-        if (checkExists.length > 0) {
+
+        const { sql, values } = await MyModel.getRows("commentsMembers", { where: where });
+        const checkExists = await c.env.DB.prepare(sql).bind(...values).all();
+
+        if (checkExists.results.length > 0) {
             const set = {
                 status: type,
             };
-            const response = await MyModel.update("commentsMembers", set, where);
-            const { affectedRows, changedRows, info } = response;
-            const message = !affectedRows
-                ? "Data not found"
-                : affectedRows && changedRows
-                    ? "Data updated successfully"
-                    : affectedRows && !changedRows
-                        ? "Data was found but already up to date"
-                        : "Update failed!";
-            const formatted = formatData({ message, info });
-            res.status(200).send(formatted);
+
+            const { sql: sql2, values: values2 } = await MyModel.update("commentsMembers", set, where);
+            const response = await c.env.DB.prepare(sql2).bind(...values2).all();
+
+            const formatted = formatData({
+                "message": "Data updated successfully",
+                "info": `Rows matched: ${response.meta.rows_written}  Changed: ${response.meta.changes}`
+            });
+
+            return c.json(formatted);
         } else {
             const insertData = {
                 refId: refId,
@@ -1159,15 +1156,17 @@ class Model {
                 name: cardMembers.empName,
             };
 
-            const response = await MyModel.insert("commentsMembers", insertData);
+            const { sql: sql2, values: values2 } = await MyModel.insert("commentsMembers", insertData);
+            const response = await c.env.DB.prepare(sql2).bind(...values2).all();
+
             const formatted = formatData({
                 message: "commentsMembers  saved!",
-                insertId: response,
+                insertId: response.meta.last_row_id.toString(),
             });
-            res.status(200).send(formatted);
+
+            return c.json(formatted);
         }
     };
-
     getAttendance = async (c, next) => {
         const body = await c.req.json();
         const { date } = body;
@@ -1729,59 +1728,58 @@ class Model {
         return c.json(formatted);
     };
 
-    sendTicketCardStatus = async (req, res, next) => {
+    sendTicketCardStatus = async (c, next) => {
+        const body = await c.req.json();
         const set = {
-            status: JSON.stringify(req.body.objStatus),
+            status: JSON.stringify(body.objStatus),
         };
-        const where = {
-            count: req.body.count,
+        const options = {
+            select: "*",
+            where: {
+                fkCardId: id,
+                status: "Active",
+            },
         };
 
-        const result = await MyModel.update("cards", set, where);
-        if (!result) {
-            throw new HttpException(404, "Something went wrong");
+        const { sql, values } = await MyModel.update('cards', set, options);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
+
+        if (result && !result.success) {
+            return c.json(new HttpException(400, 'Something went wrong'), 400);
         }
 
-        const { affectedRows, changedRows, info } = result;
-        const message = !affectedRows
-            ? "Data not found"
-            : affectedRows && changedRows
-                ? "Data updated successfully"
-                : affectedRows && !changedRows
-                    ? "Data was found but already up to date"
-                    : "Update failed!";
-
-        const formatted = formatData({ message, info });
-        res.status(200).send(formatted);
+        const formatted = formatData({
+            "message": "Data updated successfully",
+            "info": `Rows matched: ${result.meta.rows_written}  Changed: ${result.meta.changes}`
+        });
+        return c.json(formatted);
     };
 
-    sendticketCardMembers = async (req, res, next) => {
-        const { cardMembers, fkCardId, type } = req.body;
+    sendticketCardMembers = async (c, next) => {
+        const body = await c.req.json();
+        const { cardMembers, fkCardId, type } = body;
 
         const where = {
             fkCardId: fkCardId,
             userID: cardMembers.ID,
         };
 
-        const checkExists = await MyModel.getRows("ticketCardMembers", {
-            where: where,
-        });
+        const { sql, values } = await MyModel.getRows('ticketCardMembers', { select: "*", where: where });
+        const checkExists = await c.env.DB.prepare(sql).bind(...values).all();
 
-        if (checkExists.length > 0) {
+        if (checkExists.results.length > 0) {
             const set = {
                 status: type,
             };
-            const response = await MyModel.update("ticketCardMembers", set, where);
-            const { affectedRows, changedRows, info } = response;
-            const message = !affectedRows
-                ? "Data not found"
-                : affectedRows && changedRows
-                    ? "Data updated successfully"
-                    : affectedRows && !changedRows
-                        ? "Data was found but already up to date"
-                        : "Update failed!";
-            const formatted = formatData({ message, info });
-            res.status(200).send(formatted);
+
+            const { sql: sql2, values: values2 } = await MyModel.update('ticketCardMembers', set, where);
+            const response = await c.env.DB.prepare(sql2).bind(...values2).run();
+
+            const formatted = formatData({
+                "message": "Data updated successfully",
+                "info": `Rows matched: ${response.meta.rows_written}  Changed: ${response.meta.changes}`
+            });
+            return c.json(formatted);
         } else {
             const insertData = {
                 fkCardId: fkCardId,
@@ -1793,12 +1791,15 @@ class Model {
                 name: cardMembers.empName,
             };
 
-            const response = await MyModel.insert("ticketCardMembers", insertData);
+            const { sql: sql2, values: values2 } = await MyModel.insert('ticketCardMembers', insertData);
+            const response = await c.env.DB.prepare(sql2).bind(...values2).run();
+
             const formatted = formatData({
                 message: "ticketCardMembers  saved!",
-                insertId: response,
+                insertId: response.meta.last_row_id.toString(),
             });
-            res.status(200).send(formatted);
+
+            return c.json(formatted);
         }
     };
 
@@ -2148,41 +2149,46 @@ class Model {
         return c.json(formatted);
     };
 
-    deleteAttachment = async (req, res, next) => {
-        const { count, fileName, fkCard, addedBy } = req.body;
+    deleteAttachment = async (c, next) => {
+        const body = await c.req.json();
+        const { count, fileName, fkCard, addedBy } = body;
 
         let insertData = {
-            fkCard: fkCard,
-            dateTime: new Date(),
-            addedBy: addedBy,
+            fkCard: fkCard.toString(),
+            dateTime: new Date().toDateString(),
+            addedBy: addedBy.toString(),
             type: "delete",
             fileName: fileName,
             content: `deleted the  ${fileName} from this card`,
         };
 
-        const response = await MyModel.insert("cardActivities", insertData);
+        const { sql, values } = await MyModel.insert("cardActivities", insertData);
+        const response = await c.env.DB.prepare(sql).bind(...values).all();
 
-        if (response === 0) {
+        if (!response) {
             throw new HttpException(
                 500,
                 "Something went wrong adding of card activities!"
             );
-        }
+        } else {
+            const set = {
+                status: "Deleted",
+            };
+            const where = {
+                count: count,
+            };
 
-        const set = {
-            status: "Deleted",
-        };
-        const where = {
-            count: count,
-        };
-        await MyModel.update("cardActivities", set, where);
+            const { sql: sql_, values: values_ } = await MyModel.update("cardActivities", set, where);
+            await c.env.DB.prepare(sql_).bind(...values_).run();
+        }
 
         const formatted = formatData({
             message: "Model changes saved!",
-            insertId: response,
+            insertId: response.meta.last_row_id.toString(),
         });
-        res.status(200).send(formatted);
+        return c.json(formatted);
     };
+
 
     updateCardInfo = async (c, next) => {
         const body = await c.req.json();

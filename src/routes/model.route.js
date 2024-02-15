@@ -29,18 +29,18 @@ router.get('/getProjectSpace/:id', awaitHandlerFactory(modelController.getProjec
 router.get('/getAllStaffs', awaitHandlerFactory(modelController.getAllStaffs)); //converted
 router.post('/getAttendance', awaitHandlerFactory(modelController.getAttendance)); //converted
 router.post('/getEmployeesAttendance', awaitHandlerFactory(modelController.getEmployeesAttendance)); //converted
-router.post('/getEmployeeAttendance', awaitHandlerFactory(modelController.getEmployeeAttendance));
+router.post('/getEmployeeAttendance', awaitHandlerFactory(modelController.getEmployeeAttendance)); //converted
 router.get('/getAllManagers', awaitHandlerFactory(modelController.getAllManagers)); //converted
 router.get('/getAllMaterials', awaitHandlerFactory(modelController.getAllMaterials)); //converted
-router.post('/sendComment', awaitHandlerFactory(modelController.sendComment));
+router.post('/sendComment', awaitHandlerFactory(modelController.sendComment));//converted
 router.post('/sendTicketCardComment', awaitHandlerFactory(modelController.sendTicketCardComment));//converted
-router.post('/sendStatus', awaitHandlerFactory(modelController.sendStatus));
-router.post('/sendTicketCardStatus', awaitHandlerFactory(modelController.sendTicketCardStatus));
-router.post('/sendMembers', awaitHandlerFactory(modelController.sendMembers));
-router.post('/sendticketCardMembers', awaitHandlerFactory(modelController.sendticketCardMembers));
-router.post('/initComments', awaitHandlerFactory(modelController.initComments));
+router.post('/sendStatus', awaitHandlerFactory(modelController.sendStatus));//converted
+router.post('/sendTicketCardStatus', awaitHandlerFactory(modelController.sendTicketCardStatus));//converted
+router.post('/sendMembers', awaitHandlerFactory(modelController.sendMembers));//converted
+router.post('/sendticketCardMembers', awaitHandlerFactory(modelController.sendticketCardMembers));//converted
+router.post('/initComments', awaitHandlerFactory(modelController.initComments));//converted
 router.post('/asignStaff', awaitHandlerFactory(modelController.asignStaff)); // converted
-router.post('/addMaterial', awaitHandlerFactory(modelController.addMaterial));
+router.post('/addMaterial', awaitHandlerFactory(modelController.addMaterial));//converted
 router.post('/qtyUpdate', awaitHandlerFactory(modelController.qtyUpdate));//converted
 router.post('/updateAsignmentStatus', awaitHandlerFactory(modelController.updateAsignmentStatus)); //converted
 router.post('/updateAdeddConsumableStatus', awaitHandlerFactory(modelController.updateAdeddConsumableStatus));
@@ -67,7 +67,7 @@ router.post('/addPO', awaitHandlerFactory(modelController.addPO)); //converted
 router.post('/acknowledgeOrders', awaitHandlerFactory(modelController.acknowledgeOrders)); //converted
 router.post('/archiveList', awaitHandlerFactory(modelController.archiveList));//converted
 router.post('/archiveCard', awaitHandlerFactory(modelController.archiveCard));//converted
-router.post('/deleteAttachment', awaitHandlerFactory(modelController.deleteAttachment));
+router.post('/deleteAttachment', awaitHandlerFactory(modelController.deleteAttachment));//converted
 router.post('/updateComment', awaitHandlerFactory(modelController.updateComment));//converted
 router.post('/deleteComment', awaitHandlerFactory(modelController.deleteComment));//converted
 router.post('/updateTicketComment', awaitHandlerFactory(modelController.updateTicketComment));//converted
