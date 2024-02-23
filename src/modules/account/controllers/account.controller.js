@@ -47,10 +47,10 @@ class Account {
                 dateAdded: Date.now(),
             }
 
-            const  { sql, values } = await MyModel.insert(`${this.tbluserdetails}`, usersDetailsData);
-            const resulInsertedUserDetails = await c.env.DB.prepare(sql).bind(...values).run();
+            const  { sql:sql2, values:values2 } = await MyModel.insert(`${this.tbluserdetails}`, usersDetailsData);
+            const resulInsertedUserDetails = await c.env.DB.prepare(sql2).bind(...valuvalues2es).run();
 
-            if (resulInsertedUserDetails.meta.last_row_id == 0) {
+            if (!resulInsertedUserDetails) {
                 console.log('Something went wrong');
                 throw new HttpException(500, 'Something went wrong adding tbluserdetails');
             }
@@ -80,8 +80,8 @@ class Account {
         const getDataResult = await c.env.DB.prepare(sql).bind(...values).run();
 
         if (Array.isArray(getDataResult.results) && getDataResult.results.length > 0) {
-            const { sql, values } = await MyModel.update(tableName, set, where);
-            const resultData = await c.env.DB.prepare(sql).bind(...values).run();
+            const { sql:sql2, values:values2 } = await MyModel.update(tableName, set, where);
+            const resultData = await c.env.DB.prepare(sql2).bind(...values2).run();
 
             if (!resultData) {
                 return c.text("Data not found!", 404);

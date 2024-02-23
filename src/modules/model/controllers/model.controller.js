@@ -261,8 +261,8 @@ class Model {
             location: location,
         };
 
-        const { sql, values } = await MyModel.getRows("projectModelSpaces", projectData);
-        const result = await c.env.DB.prepare(sql).bind(...values).all();
+        const { sql, values } = await MyModel.insert("projectModelSpaces", projectData);
+        const result = await c.env.DB.prepare(sql).bind(...values).run();
 
         if (!result) {
             throw c.json(new HttpException(404, "Employees  not found!"));
